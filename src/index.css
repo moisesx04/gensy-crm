@@ -261,6 +261,59 @@ body {
 }
 .stat-val { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; color: var(--t1); }
 .stat-lbl { font-size: 14px; color: var(--t2); font-weight: 600; }
+.stat-sub { font-size: 11px; color: var(--t3); margin-top: 4px; font-weight: 500; }
+
+/* ── Dashboard Grid ── */
+.dash-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 340px; 
+  gap: 24px; 
+  margin-top: 32px; 
+  align-items: start;
+}
+
+.feed-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--bg);
+  transition: background 0.2s;
+}
+.feed-item:hover { background: #fcfdfe; }
+.feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.feed-text { flex: 1; font-size: 13.5px; color: var(--t2); line-height: 1.5; }
+.feed-text strong { color: var(--t1); font-weight: 700; }
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--bg);
+  gap: 12px;
+}
+.rank-info { flex: 1; }
+.rank-item strong { color: var(--accent); white-space: nowrap; }
+
+.link-box {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: 12px;
+  gap: 16px;
+  margin-bottom: 32px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.empty {
+  padding: 56px 32px;
+  text-align: center;
+  color: var(--t3);
+}
+.empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.5; }
+.empty h3 { font-size: 16px; color: var(--t2); margin-bottom: 8px; }
+.empty p { font-size: 13px; max-width: 280px; margin: 0 auto; }
 
 /* ── Tables & Cards ────────── */
 .tbl-wrap { overflow-x: auto; border-radius: 12px; }
@@ -399,6 +452,23 @@ tbody tr:hover { background: #f8fafc; }
   .stat-card { padding: 16px; }
   .stat-val { font-size: 24px; }
   .mcard-body { grid-template-columns: 1fr; }
+  
+  /* Dashboard Mobile */
+  .dash-grid { grid-template-columns: 1fr; gap: 20px; }
+  .link-box { flex-direction: column; align-items: stretch; gap: 12px; }
+  .link-box code { font-size: 11px !important; }
+  .feed-item { padding: 14px 16px; gap: 12px; flex-direction: column; align-items: flex-start; }
+  .feed-text { font-size: 13px; }
+  .feed-item > div:last-child { 
+    width: 100%; 
+    display: flex !important; 
+    justify-content: space-between !important; 
+    align-items: center !important;
+    text-align: left !important;
+    padding-top: 8px;
+    border-top: 1px solid #f8fafc;
+  }
+  .rank-item { padding: 12px 16px; }
 }
 
 /* Safe Area Insets for modern iPhones */

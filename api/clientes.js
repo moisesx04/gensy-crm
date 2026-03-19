@@ -27,7 +27,7 @@ export default async function handler(req, res) {
           cash_o_programa, programa_asistencia
         ) VALUES (
           ${c.nombreCompleto}, ${c.telefono}, ${c.direccion}, ${c.numPersonas}, ${c.numHabitaciones},
-          ${c.edades}, ${c.mascotas}, ${c.tipoIdentificacion}, ${c.tipoId_otro}, ${c.numeroIdentificacion},
+          ${c.edades}, ${c.mascotas}, ${c.tipoIdentificacion}, ${c.tipoIdOtro}, ${c.numeroIdentificacion},
           ${c.tipoSocial}, ${c.numeroSocial}, ${c.creditScore}, ${c.cuentaBanco}, ${c.formaCobro},
           ${c.presentoTaxes}, ${c.montoTaxes}, ${c.ingresosMensuales}, ${c.lugarTrabajo},
           ${c.cashOPrograma}, ${c.programaAsistencia}
@@ -57,7 +57,35 @@ export default async function handler(req, res) {
   try {
     if (method === 'GET') {
       const { rows } = await sql`SELECT * FROM clientes ORDER BY created_at DESC;`;
-      return res.status(200).json(rows);
+      
+      // Mapear snake_case a camelCase para el frontend
+      const mapped = rows.map(r => ({
+        id: r.id,
+        nombreCompleto: r.nombre_completo,
+        telefono: r.telefono,
+        direccion: r.direccion,
+        numPersonas: r.num_personas,
+        numHabitaciones: r.num_habitaciones,
+        edades: r.edades,
+        mascotas: r.mascotas,
+        tipoIdentificacion: r.tipo_identificacion,
+        tipoIdOtro: r.tipo_id_otro,
+        numeroIdentificacion: r.numero_identificacion,
+        tipoSocial: r.tipo_social,
+        numeroSocial: r.numero_social,
+        creditScore: r.credit_score,
+        cuentaBanco: r.cuenta_banco,
+        formaCobro: r.forma_cobro,
+        presentoTaxes: r.presento_taxes,
+        montoTaxes: r.monto_taxes,
+        ingresosMensuales: r.ingresos_mensuales,
+        lugarTrabajo: r.lugar_trabajo,
+        cashOPrograma: r.cash_o_programa,
+        programaAsistencia: r.programa_asistencia,
+        createdAt: r.created_at
+      }));
+      
+      return res.status(200).json(mapped);
     }
 
     if (method === 'DELETE') {
