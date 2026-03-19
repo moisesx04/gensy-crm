@@ -17,7 +17,7 @@ export default function App() {
       <Route path="/form/gracias" element={<FormSuccess />} />
       
       {/* Administrador - Protegido */}
-      <Route path="/" element={
+      <Route path="/*" element={
         <ProtectedRoute>
           <Layout>
             <Routes>
