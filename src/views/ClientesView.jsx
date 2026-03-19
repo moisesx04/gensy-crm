@@ -15,41 +15,68 @@ export default function ClientesView() {
   const { searchQuery: search, setSearchQuery: setSearch } = useSearch();
   const [deleting, setDeleting] = useState(null);
 
+  // Date Filtering States
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   useEffect(() => subscribeClientes(setClientes), []);
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase();
-    return !q ||
+    const matchesSearch = !q ||
       (c.nombreCompleto || '').toLowerCase().includes(q) ||
       (c.lugarTrabajo || '').toLowerCase().includes(q) ||
       (c.cashOPrograma || '').toLowerCase().includes(q);
+
+    // Date range logic
+    let matchesDate = true;
+    if (c.createdAt) {
+      const d = new Date(c.createdAt).getTime();
+      if (startDate) {
+        const start = new Date(startDate).setHours(0,0,0,0);
+        if (d < start) matchesDate = false;
+      }
+      if (endDate) {
+        const end = new Date(endDate).setHours(23,59,59,999);
+        if (d > end) matchesDate = false;
+      }
+    } else if (startDate || endDate) {
+      matchesDate = false;
+    }
+
+    return matchesSearch && matchesDate;
   });
 
-  // ── EXCEL ────────────────────────────────────────────────────
+  // ── EXCEL (Reports EVERYTHING) ────────────────────────────────
   function exportExcel() {
-    const rows = clientes.map(c => ({
-      'Nombre Completo':       c.nombreCompleto,
-      'Personas':              c.numPersonas,
-      'Habitaciones':          c.numHabitaciones,
-      'Edades':                c.edades,
-      'Credit Score':          c.creditScore || '',
-      'Cuenta de Banco':       c.cuentaBanco,
-      'Cobra':                 c.formaCobro,
-      'Presentó Taxes':        c.presentoTaxes,
-      'Monto Taxes ($)':       c.montoTaxes || 0,
-      'Mascotas':              c.mascotas,
-      'Identificación':        c.tipoIdentificacion + (c.tipoIdOtro ? ` (${c.tipoIdOtro})` : ''),
-      'No. Fiscal':            c.tipoSocial,
-      'Trabaja en':            c.lugarTrabajo,
-      'Forma de Pago':         c.cashOPrograma,
-      'Programa Asistencia':   c.programaAsistencia || '',
-      'Ingresos Mensuales ($)': c.ingresosMensuales,
-      'Fecha de Registro':     c.createdAt ? new Date(c.createdAt).toLocaleString('es-DO') : '',
+    const rows = filtered.map(c => ({
+      'ID':                      c.id,
+      'Nombre Completo':         c.nombreCompleto,
+      'Teléfono':                c.telefono || '—',
+      'Dirección':               c.direccion || '—',
+      'Personas':                c.numPersonas,
+      'Habitaciones':            c.numHabitaciones,
+      'Edades':                  c.edades,
+      'Mascotas':                c.mascotas,
+      'Tipo de ID':              c.tipoIdentificacion + (c.tipoIdOtro ? ` (${c.tipoIdOtro})` : ''),
+      'Sujeto ID':               c.numeroIdentificacion || '—',
+      'ID Fiscal':               c.tipoSocial,
+      'Número Fiscal':           c.numeroSocial || '—',
+      'Credit Score':            c.creditScore || 'No ind.',
+      'Cuenta Banco':            c.cuentaBanco,
+      'Forma de Cobro':          c.formaCobro,
+      'Presentó Taxes':          c.presentoTaxes,
+      'Monto Taxes':             c.montoTaxes || 0,
+      'Trabaja en':              c.lugarTrabajo || '—',
+      'Método Pago Renta':       c.cashOPrograma,
+      'Programa Asistencia':     c.programaAsistencia || '—',
+      'Ingresos Mensuales ($)':  c.ingresosMensuales,
+      'Fecha y Hora Registro':   c.createdAt ? new Date(c.createdAt).toLocaleString('es-DO') : '',
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Clientes GENSY');
-    XLSX.writeFile(wb, `GENSY_Clientes_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte Completo GENSY');
+    XLSX.writeFile(wb, `GENSY_Reporte_Completo_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
   // ── PDF ──────────────────────────────────────────────────────
@@ -57,33 +84,31 @@ export default function ClientesView() {
     const doc = new jsPDF({ orientation: 'landscape', format: 'a4' });
     doc.setFontSize(15);
     doc.setTextColor(15, 23, 42);
-    doc.text('GENSY Inmobiliario — Registro de Clientes', 14, 15);
+    doc.text('GENSY Inmobiliario — Reporte de Clientes', 14, 15);
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Total: ${clientes.length} registros  |  Generado el ${new Date().toLocaleDateString('es-DO')}`, 14, 21);
+    doc.text(`Total seleccionados: ${filtered.length}  |  Generado: ${new Date().toLocaleString('es-DO')}`, 14, 21);
+
     autoTable(doc, {
       startY: 26,
-      head: [['Nombre', 'Personas', 'Hab.', 'Ingresos/mes', 'Trabaja en', 'Pago', 'Banco', 'Taxes', 'Mascotas', 'ID', 'No. Fiscal', 'Fecha']],
-      body: clientes.map(c => [
+      head: [['ID', 'Nombre', 'Teléfono', 'Personas', 'Ingresos', 'Trabajo', 'Banco', 'Taxes', 'Credit', 'Fecha']],
+      body: filtered.map(c => [
+        c.id,
         c.nombreCompleto,
-        c.numPersonas,
-        c.numHabitaciones,
+        c.telefono || '—',
+        `${c.numPersonas}p / ${c.numHabitaciones}h`,
         `$${Number(c.ingresosMensuales||0).toLocaleString()}`,
-        c.lugarTrabajo || '—',
-        c.cashOPrograma || '—',
+        c.lugarTrabajo?.slice(0, 15) || '—',
         c.cuentaBanco || '—',
-        c.presentoTaxes === 'Sí' ? `Sí ($${Number(c.montoTaxes||0).toLocaleString()})` : 'No',
-        c.mascotas || '—',
-        c.tipoIdentificacion || '—',
-        c.tipoSocial || '—',
+        c.presentoTaxes || '—',
+        c.creditScore || '—',
         c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-DO') : '—',
       ]),
-      styles: { fontSize: 7.5, cellPadding: 3 },
-      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255 },
       alternateRowStyles: { fillColor: [248, 250, 252] },
-      margin: { left: 14, right: 14 },
     });
-    doc.save(`GENSY_Clientes_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`GENSY_Reporte_${new Date().toISOString().slice(0,10)}.pdf`);
   }
 
   function handleDelete(id, nombre) {
@@ -117,15 +142,31 @@ export default function ClientesView() {
       </div>
 
       {/* Search */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ maxWidth: 360 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div className="search-wrap" style={{ maxWidth: 320, flex: 1 }}>
           <Search size={16} color="var(--t3)" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, trabajo o pago..." />
+            placeholder="Buscar por nombre, trabajo..." />
         </div>
-        {search && (
-          <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: 13 }}
-            onClick={() => setSearch('')}>Limpiar</button>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', marginLeft: 4 }}>Desde:</span>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+              className="btn btn-ghost" style={{ padding: '8px 12px', fontSize: 13, height: 42, minWidth: 140 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', marginLeft: 4 }}>Hasta:</span>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+              className="btn btn-ghost" style={{ padding: '8px 12px', fontSize: 13, height: 42, minWidth: 140 }} />
+          </div>
+        </div>
+
+        {(search || startDate || endDate) && (
+          <button className="btn btn-ghost" style={{ padding: '0 16px', fontSize: 13, height: 42, color: '#ef4444' }}
+            onClick={() => { setSearch(''); setStartDate(''); setEndDate(''); }}>
+            Limpiar filtros
+          </button>
         )}
       </div>
 

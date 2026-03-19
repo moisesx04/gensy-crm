@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
     return res.status(200).json({ token, user: { email: user.email, nombre: user.nombre } });
   } catch (error) {
     console.error(error);
