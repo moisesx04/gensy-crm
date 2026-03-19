@@ -1,12 +1,11 @@
-import { createPool } from '@vercel/postgres';
+const { createPool } = require('@vercel/postgres');
 
-const pool = createPool({ 
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL 
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
 });
 
-export default async function handler(request, response) {
+module.exports = async function handler(req, res) {
   try {
-    // 1. Crear tabla de Clientes
     await pool.sql`
       CREATE TABLE IF NOT EXISTS clientes (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,7 +34,6 @@ export default async function handler(request, response) {
       );
     `;
 
-    // 2. Crear tabla de Usuarios (Admins)
     await pool.sql`
       CREATE TABLE IF NOT EXISTS usuarios (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -46,7 +44,6 @@ export default async function handler(request, response) {
       );
     `;
 
-    // 3. Crear tabla de Propiedades
     await pool.sql`
       CREATE TABLE IF NOT EXISTS propiedades (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -61,9 +58,9 @@ export default async function handler(request, response) {
       );
     `;
 
-    return response.status(200).json({ message: 'Base de datos inicializada con éxito.' });
+    return res.status(200).json({ message: 'Base de datos inicializada con éxito.' });
   } catch (error) {
     console.error(error);
-    return response.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-}
+};

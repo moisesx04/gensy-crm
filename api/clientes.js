@@ -1,16 +1,15 @@
-import { createPool } from '@vercel/postgres';
-import jwt from 'jsonwebtoken';
+const { createPool } = require('@vercel/postgres');
+const jwt = require('jsonwebtoken');
 
-const pool = createPool({ 
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL 
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { method } = req;
 
-  // 1. POST: Registro público de clientes (sin auth)
   if (method === 'POST') {
     const c = req.body;
     try {
@@ -32,11 +31,10 @@ export default async function handler(req, res) {
       return res.status(201).json({ id: result.rows[0].id });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Error al registrar cliente.' });
+      return res.status(500).json({ error: 'Error al registrar cliente: ' + error.message });
     }
   }
 
-  // 2. GET/DELETE: Solo para administradores autenticados
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'No autorizado.' });
@@ -61,4 +59,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(403).json({ error: 'Token inválido o expirado.' });
   }
-}
+};
