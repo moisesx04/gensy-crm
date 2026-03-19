@@ -74,7 +74,7 @@ export default function ClienteModal({ cliente: c, onClose }) {
           </div>
 
           {/* Rows */}
-          <div style={{ padding: '8px 0' }}>
+          <div style={{ padding: '4px 0' }}>
             {ROWS.map(([lbl, val, hi], i) => (
               <motion.div
                 key={i}
@@ -83,16 +83,17 @@ export default function ClienteModal({ cliente: c, onClose }) {
                 transition={{ delay: 0.03 * i }}
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '12px 32px', gap: 12,
+                  padding: '10px 20px', gap: 12,
                   borderBottom: i === ROWS.length - 1 ? 'none' : '1px solid #f1f5f9',
                   background: i % 2 === 0 ? '#fff' : '#fcfdfe',
                 }}
               >
-                <span style={{ fontSize: 14, color: 'var(--t2)', fontWeight: 600 }}>{lbl}</span>
+                <span style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 600, flexShrink: 0 }}>{lbl}</span>
                 <span style={{
-                  fontSize: 14.5, fontWeight: 700,
+                  fontSize: 14, fontWeight: 700,
                   color: hi ? 'var(--accent)' : 'var(--t1)',
-                  textAlign: 'right', maxWidth: '60%',
+                  textAlign: 'right', maxWidth: '70%',
+                  wordBreak: 'break-word'
                 }}>
                   {val || '—'}
                 </span>

@@ -140,65 +140,128 @@ export default function ClientesView() {
             </p>
           </div>
         ) : (
-          <div className="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Personas</th>
-                  <th>Hab.</th>
-                  <th>Ingresos/mes</th>
-                  <th>Pago</th>
-                  <th>Banco</th>
-                  <th>Taxes</th>
-                  <th>Mascotas</th>
-                  <th>Registro</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c, i) => (
-                  <tr key={c.id || i} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
-                    <td>
-                      <div className="av-cell">
-                        <div className="tbl-av" style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
-                          {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="cell-n">{c.nombreCompleto}</p>
-                          <p style={{ fontSize: 12, color: 'var(--t3)' }}>{c.lugarTrabajo || '—'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{c.numPersonas}</td>
-                    <td>{c.numHabitaciones}</td>
-                    <td><strong style={{ color: 'var(--accent)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</strong></td>
-                    <td><span className={`badge ${badgeClass(c.cashOPrograma)}`}>{c.cashOPrograma || '—'}</span></td>
-                    <td><span className={`badge ${c.cuentaBanco === 'Sí' ? 'bg-green' : 'bg-red'}`}>{c.cuentaBanco || '—'}</span></td>
-                    <td><span className={`badge ${c.presentoTaxes === 'Sí' ? 'bg-blue' : 'bg-gray'}`}>{c.presentoTaxes || '—'}</span></td>
-                    <td><span className={`badge ${c.mascotas === 'Sí' ? 'bg-yellow' : 'bg-gray'}`}>{c.mascotas || '—'}</span></td>
-                    <td style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap' }}>
-                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-DO') : '—'}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
-                        <button title="Ver detalle"
-                          onClick={() => setSelected(c)}
-                          className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10 }}>
-                          <Eye size={16} />
-                        </button>
-                        <button title="Eliminar"
-                          onClick={() => handleDelete(c.id, c.nombreCompleto)}
-                          className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10, borderColor: '#fee2e2', color: '#ef4444' }}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Per./Hab.</th>
+                    <th>Ingresos/mes</th>
+                    <th>Pago</th>
+                    <th>Banco</th>
+                    <th>Taxes</th>
+                    <th>Mascotas</th>
+                    <th>Registro</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((c, i) => (
+                    <tr key={c.id || i} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                      <td>
+                        <div className="av-cell">
+                          <div className="tbl-av" style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
+                            {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="cell-n">{c.nombreCompleto}</p>
+                            <p style={{ fontSize: 12, color: 'var(--t3)' }}>{c.lugarTrabajo || '—'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ fontSize: 13, fontWeight: 600 }}>{c.telefono || '—'}</td>
+                      <td>
+                        <div style={{ fontSize: 13, fontWeight: 700 }}>{c.numPersonas} per.</div>
+                        <div style={{ fontSize: 11, color: 'var(--t3)' }}>{c.numHabitaciones} hab.</div>
+                      </td>
+                      <td><strong style={{ color: 'var(--accent)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</strong></td>
+                      <td><span className={`badge ${badgeClass(c.cashOPrograma)}`}>{c.cashOPrograma || '—'}</span></td>
+                      <td><span className={`badge ${c.cuentaBanco === 'Sí' ? 'bg-green' : 'bg-red'}`}>{c.cuentaBanco || '—'}</span></td>
+                      <td><span className={`badge ${c.presentoTaxes === 'Sí' ? 'bg-blue' : 'bg-gray'}`}>{c.presentoTaxes || '—'}</span></td>
+                      <td><span className={`badge ${c.mascotas === 'Sí' ? 'bg-yellow' : 'bg-gray'}`}>{c.mascotas || '—'}</span></td>
+                      <td style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap' }}>
+                        {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-DO') : '—'}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                          <button title="Ver detalle"
+                            onClick={() => setSelected(c)}
+                            className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10 }}>
+                            <Eye size={16} />
+                          </button>
+                          <button title="Eliminar"
+                            onClick={() => handleDelete(c.id, c.nombreCompleto)}
+                            className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10, borderColor: '#fee2e2', color: '#ef4444' }}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="mobile-cards">
+              {filtered.map((c, i) => (
+                <div key={c.id || i} className="mobile-card" onClick={() => setSelected(c)}>
+                  <div className="mcard-head">
+                    <div className="tbl-av" style={{ width: 44, height: 44, background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
+                      {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p className="cell-n" style={{ fontSize: 16 }}>{c.nombreCompleto}</p>
+                      <p style={{ fontSize: 12, color: 'var(--t3)' }}>{c.lugarTrabajo || '—'}</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--accent)' }}>
+                        ${Number(c.ingresosMensuales||0).toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--t3)' }}>/mes</div>
+                    </div>
+                  </div>
+                  
+                  <div className="mcard-body">
+                    <div className="mcard-item">
+                      <b>📞 Teléfono</b>
+                      {c.telefono || '—'}
+                    </div>
+                    <div className="mcard-item">
+                      <b>👥 Ocupantes</b>
+                      {c.numPersonas} per. / {c.numHabitaciones} hab.
+                    </div>
+                    <div className="mcard-item">
+                      <b>💳 Pago</b>
+                      <span className={`badge ${badgeClass(c.cashOPrograma)}`}>{c.cashOPrograma || '—'}</span>
+                    </div>
+                    <div className="mcard-item">
+                      <b>🏦 Banco</b>
+                      <span className={`badge ${c.cuentaBanco === 'Sí' ? 'bg-green' : 'bg-red'}`}>{c.cuentaBanco || '—'}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>
+                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-DO') : '—'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={(e) => { e.stopPropagation(); setSelected(c); }}>
+                        Ver Todo
+                      </button>
+                      <button className="icon-btn" style={{ width: 32, height: 32, borderColor: '#fee2e2', color: '#ef4444' }} 
+                        onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.nombreCompleto); }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

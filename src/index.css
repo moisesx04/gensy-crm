@@ -253,16 +253,27 @@ body {
 .stat-val { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; color: var(--t1); }
 .stat-lbl { font-size: 14px; color: var(--t2); font-weight: 600; }
 
-/* ── Table ────────── */
-.tbl-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
+/* ── Tables & Cards ────────── */
+.tbl-wrap { overflow-x: auto; border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; } /* Ensures table content is readable with scroll if card view is not used */
 thead th {
   padding: 16px 24px; text-align: left;
   font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--t3); border-bottom: 1px solid var(--card-border);
+  color: var(--t3); border-bottom: 2px solid var(--bg);
 }
-tbody td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid #f1f5f9; color: var(--t2); }
+tbody td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid var(--bg); color: var(--t2); }
 tbody tr:hover { background: #f8fafc; }
+
+/* ── Mobile Card View (for usage in ClientesView) ── */
+.mobile-cards { display: none; flex-direction: column; gap: 16px; padding: 16px 0; }
+.mobile-card {
+  background: #fff; border: 1px solid var(--card-border); border-radius: 16px;
+  padding: 20px; box-shadow: var(--card-shadow);
+}
+.mcard-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.mcard-body { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mcard-item { font-size: 13px; color: var(--t2); }
+.mcard-item b { display: block; color: var(--t1); font-size: 14px; margin-bottom: 2px; }
 
 .av-cell { display: flex; align-items: center; gap: 12px; }
 .tbl-av {
@@ -275,12 +286,14 @@ tbody tr:hover { background: #f8fafc; }
 /* ── Badges ───────── */
 .badge {
   display: inline-flex; align-items: center;
-  padding: 4px 12px; border-radius: 99px;
-  font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
 }
 .bg-green  { background: #ecfdf5; color: var(--success); }
 .bg-red    { background: #fef2f2; color: var(--danger); }
 .bg-blue   { background: #eff6ff; color: var(--info); }
+.bg-yellow { background: #fffbe6; color: var(--warning); }
+.bg-gray   { background: #f1f5f9; color: var(--t3); }
 
 /* ── Forms ────────── */
 .fg { margin-bottom: 24px; }
@@ -310,7 +323,7 @@ tbody tr:hover { background: #f8fafc; }
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 500;
   background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center; padding: 24px;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal-box {
   background: #fff; border-radius: 24px;
@@ -337,11 +350,35 @@ tbody tr:hover { background: #f8fafc; }
   border: 1px solid #fff;
 }
 
+/* ── Helpers ───────────────────────────── */
+.hidden-mobile { display: block; }
+.hidden-desktop { display: none; }
+
 /* ── Responsive ─────────────────────────── */
 @media (max-width: 900px) {
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
   .main { margin-left: 0 !important; }
-  .page { padding: 24px; }
-  .header { padding: 0 24px; }
+  .page { padding: 24px 16px; }
+  .header { padding: 0 20px; }
+  .search-wrap { max-width: 240px; }
+  .hidden-mobile { display: none; }
+  .hidden-desktop { display: block; }
+}
+
+@media (max-width: 768px) {
+  .tbl-wrap { display: none; }
+  .mobile-cards { display: flex; }
+  .pg-head h1 { font-size: 24px; }
+  .header { height: 60px; }
+  .header .search-wrap { display: none; } /* Hide search in main header if space is tight */
+  .modal-box { border-radius: 20px; max-height: 95vh; }
+}
+
+@media (max-width: 480px) {
+  .modal-hdr { padding: 20px; gap: 12px; }
+  .modal-hdr-name { font-size: 18px; }
+  .btn { padding: 10px 16px; font-size: 13px; }
+  .stat-card { padding: 16px; }
+  .stat-val { font-size: 24px; }
 }

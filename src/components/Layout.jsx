@@ -142,7 +142,7 @@ export default function Layout({ children }) {
             </AnimatePresence>
           </motion.button>
 
-          <div className="search-wrap">
+          <div className="search-wrap hidden-mobile">
             <Search size={16} color="var(--t3)" />
             <input 
               placeholder="Buscar..." 
@@ -152,16 +152,20 @@ export default function Layout({ children }) {
           </div>
 
           <div className="hdr-actions">
-            <motion.button className="icon-btn" whileTap={{ scale: 0.9 }}>
+            <motion.button className="icon-btn hidden-mobile" whileTap={{ scale: 0.9 }}>
               <Bell size={18} />
               {clientCount > 0 && <span className="ndot" />}
             </motion.button>
+            <div className="hidden-desktop" style={{ fontWeight: 800, fontSize: 16, color: 'var(--accent)', marginRight: 'auto' }}>
+              GENSY
+            </div>
             <motion.div className="hdr-av" whileHover={{ scale: 1.05 }}
+              onClick={() => navigate('/configuracion')}
               style={{
-                width: 40, height: 40, borderRadius: 10,
+                width: 38, height: 38, borderRadius: 10,
                 background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, fontSize: 14, color: '#fff',
+                fontWeight: 800, fontSize: 13, color: '#fff',
                 boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)', cursor: 'pointer'
               }}
             >G</motion.div>

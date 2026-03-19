@@ -194,7 +194,7 @@ export default function FormView() {
           background: '#fff', borderRadius: 24,
           overflow: 'hidden',
           boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
-          minHeight: 750,
+          minHeight: 'clamp(600px, 80vh, 850px)',
         }}>
 
           {/* ══ LEFT PANEL ══════════════════════════════════ */}
@@ -290,27 +290,27 @@ export default function FormView() {
           <div className="form-right-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             {/* Header bar */}
             <div className="form-header-bar" style={{
-              padding: '32px 60px',
+              padding: '24px 40px',
               borderBottom: '1px solid #f1f5f9',
               display: 'flex', alignItems: 'center', gap: 15,
             }}>
-              <div style={{
+              <div className="hidden-mobile" style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 background: '#f1f5f9',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Icon size={20} color="var(--accent)" />
               </div>
-              <div>
-                <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.03em' }}>{S.title}</h2>
-                <p style={{ fontSize: 14, color: 'var(--t3)', margin: 0, marginTop: 2, fontWeight: 500 }}>{S.sub}</p>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 800, color: 'var(--t1)', margin: 0, letterSpacing: '-0.03em' }}>{S.title}</h2>
+                <p style={{ fontSize: 13, color: 'var(--t3)', margin: 0, marginTop: 2, fontWeight: 500 }}>{S.sub}</p>
               </div>
               {/* Progress dots */}
               <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
                 {STEPS.map((_, i) => (
                   <div key={i} style={{
                     height: 6, borderRadius: 99,
-                    width: i === step ? 32 : 6,
+                    width: i === step ? 24 : 6,
                     background: i < step ? 'var(--accent)' : i === step ? 'var(--accent)' : '#e2e8f0',
                     transition: 'all .4s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
@@ -628,19 +628,22 @@ export default function FormView() {
                min-height: auto !important; 
                border-radius: 0 !important; 
                box-shadow: none !important;
+               margin: -32px -16px !important;
+               width: calc(100% + 32px) !important;
             }
             .form-left-panel { display: none !important; }
             .form-right-panel { padding: 0 !important; }
-            .form-header-bar { padding: 30px 20px !important; }
-            .form-footer-nav { padding: 24px 20px !important; flex-wrap: wrap; gap: 12px; }
-            .form-footer-nav button { width: 100% !important; justify-content: center; }
+            .form-header-bar { padding: 20px 16px !important; }
+            .form-footer-nav { padding: 20px 16px !important; flex-direction: column-reverse; gap: 12px; }
+            .form-footer-nav button { width: 100% !important; justify-content: center; height: 52px; font-size: 15px !important; }
             .mobile-grid-1 { grid-template-columns: 1fr !important; gap: 12px !important; }
             .mobile-opt-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-            div[style*="padding: '40px 60px'"] { padding: 30px 20px !important; }
+            div[style*="padding: '40px 60px'"] { padding: 24px 16px !important; }
           }
           @media (max-width: 480px) {
              .mobile-opt-grid { grid-template-columns: 1fr !important; }
-             h2 { font-size: 20px !important; }
+             h2 { font-size: 19px !important; }
+             .form-header-bar { padding: 16px !important; }
           }
         `}</style>
       </div>
