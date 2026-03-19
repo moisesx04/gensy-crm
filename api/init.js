@@ -1,10 +1,10 @@
-const { createPool } = require('@vercel/postgres');
+import { createPool } from '@vercel/postgres';
 
 const pool = createPool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
 });
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     await pool.sql`
       CREATE TABLE IF NOT EXISTS clientes (

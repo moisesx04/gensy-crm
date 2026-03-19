@@ -1,6 +1,6 @@
-const { createPool } = require('@vercel/postgres');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import { createPool } from '@vercel/postgres';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const pool = createPool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
@@ -8,7 +8,7 @@ const pool = createPool({
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

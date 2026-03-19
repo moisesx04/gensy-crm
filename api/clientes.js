@@ -1,5 +1,5 @@
-const { createPool } = require('@vercel/postgres');
-const jwt = require('jsonwebtoken');
+import { createPool } from '@vercel/postgres';
+import jwt from 'jsonwebtoken';
 
 const pool = createPool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
@@ -7,7 +7,7 @@ const pool = createPool({
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const { method } = req;
 
   if (method === 'POST') {
