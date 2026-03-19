@@ -48,7 +48,7 @@ export default function FormSuccess() {
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: 'linear-gradient(145deg, #0a0f2e 0%, #0d1e5c 100%)',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px', fontFamily: "'Plus Jakarta Sans', sans-serif",
       overflow: 'auto',
@@ -61,7 +61,7 @@ export default function FormSuccess() {
         style={{
           background: '#fff', borderRadius: 24,
           padding: '56px 48px', maxWidth: 580, width: '100%',
-          textAlign: 'center', boxShadow: '0 24px 64px rgba(0,0,0,.35)',
+          textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
         }}
       >
         <style>{`
@@ -75,39 +75,45 @@ export default function FormSuccess() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 260, damping: 18 }}
-          style={{ fontSize: 64, marginBottom: 16 }}
+          style={{ 
+            fontSize: 56, marginBottom: 20,
+            width: 96, height: 96, borderRadius: '50%',
+            background: '#f0fdf4', color: '#10b981',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 24px'
+          }}
         >🎉</motion.div>
 
-        <h2 style={{ fontSize: 32, fontWeight: 800, color: '#0d1630', marginBottom: 12 }}>
+        <h2 style={{ fontSize: 32, fontWeight: 800, color: 'var(--t1)', marginBottom: 12, letterSpacing: '-0.03em' }}>
           ¡Solicitud Enviada!
         </h2>
-        <p style={{ fontSize: 16.5, color: '#5a6480', lineHeight: 1.7, marginBottom: 28 }}>
+        <p style={{ fontSize: 16, color: 'var(--t3)', lineHeight: 1.7, marginBottom: 32, fontWeight: 500 }}>
           Hemos recibido tu información correctamente.<br />
-          Un agente de <strong style={{ color: '#0d1630' }}>GENSY Inmobiliario</strong> se pondrá en contacto contigo pronto.
+          Un agente de <strong style={{ color: 'var(--accent)' }}>GENSY Inmobiliario</strong> se pondrá en contacto contigo pronto.
         </p>
 
         <div style={{
-          background: '#edf0ff', border: '1.5px solid rgba(79,110,247,.2)',
-          borderRadius: 12, padding: '14px 20px', marginBottom: 32,
+          background: '#f0fdf4', border: '1px solid #bbf7d0',
+          borderRadius: 14, padding: '16px 20px', marginBottom: 36,
         }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#4f6ef7' }}>
-            ✅ Tu solicitud fue guardada exitosamente
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#10b981', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18 }}>✅</span> Tu solicitud fue guardada exitosamente
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Ver Formulario — shows the filled data */}
           {f && (
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowData(true)}
               style={{
-                width: '100%', padding: '16px 24px', borderRadius: 12, border: 'none',
-                background: 'linear-gradient(135deg, #4f6ef7, #7c3aed)',
+                width: '100%', padding: '16px 24px', borderRadius: 14, border: 'none',
+                background: 'var(--accent)',
                 color: '#fff', fontFamily: 'inherit',
-                fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(79,110,247,.35)',
+                fontSize: 16, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               }}
             >
@@ -118,12 +124,12 @@ export default function FormSuccess() {
           {/* Back to home */}
           <Link to="/" style={{ textDecoration: 'none' }}>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, background: '#f8fafc' }}
+              whileTap={{ scale: 0.98 }}
               style={{
-                width: '100%', padding: '16px 24px', borderRadius: 12, cursor: 'pointer',
-                background: 'transparent', border: '1.5px solid #e4e9f4',
-                color: '#5a6480', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
+                width: '100%', padding: '16px 24px', borderRadius: 14, cursor: 'pointer',
+                background: 'transparent', border: '2px solid #e2e8f0',
+                color: 'var(--t2)', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
               }}
             >
               🏠 Volver a la Página Principal
@@ -141,76 +147,79 @@ export default function FormSuccess() {
             exit={{ opacity: 0 }}
             onClick={() => setShowData(false)}
             style={{
-              position: 'fixed', inset: 0, zIndex: 50,
-              background: 'rgba(10,15,46,.65)', backdropFilter: 'blur(5px)',
+              position: 'fixed', inset: 0, zIndex: 100,
+              background: 'rgba(15, 23, 42, 0.3)', backdropFilter: 'blur(8px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 20,
+              padding: 24,
             }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 30 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               onClick={e => e.stopPropagation()}
               style={{
-                background: '#fff', borderRadius: 20,
+                background: '#fff', borderRadius: 24,
                 width: '100%', maxWidth: 650,
-                maxHeight: '88vh', overflowY: 'auto',
-                boxShadow: '0 24px 64px rgba(0,0,0,.3)',
+                maxHeight: '90vh', overflowY: 'auto',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
               }}
             >
               {/* Modal header */}
               <div style={{
-                background: 'linear-gradient(135deg, #0d1630 0%, #1a296e 100%)',
-                padding: '22px 24px', borderRadius: '20px 20px 0 0',
-                display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 2,
+                background: '#f8fafc',
+                padding: '24px 32px', borderBottom: '1px solid #f1f5f9',
+                display: 'flex', alignItems: 'center', gap: 16, position: 'sticky', top: 0, zIndex: 10,
               }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: 13, flexShrink: 0,
-                  background: 'linear-gradient(135deg, #4f6ef7, #e84f8c)',
+                  width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                  background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 800, fontSize: 20, color: '#fff',
                 }}>
                   {(f?.nombreCompleto || '?').charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>{f?.nombreCompleto}</div>
-                  <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 11.5, marginTop: 2 }}>
-                    Formulario de Pre-Calificación completado
+                  <div style={{ color: 'var(--t1)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>{f?.nombreCompleto}</div>
+                  <div style={{ color: 'var(--t3)', fontSize: 12, marginTop: 2, fontWeight: 500 }}>
+                    Formulario de Pre-Calificación
                   </div>
                 </div>
                 <button onClick={() => setShowData(false)} style={{
-                  width: 34, height: 34, borderRadius: 9,
-                  background: 'rgba(255,255,255,.1)', border: 'none',
-                  color: '#fff', fontSize: 17, cursor: 'pointer',
+                  width: 36, height: 36, borderRadius: 10,
+                  background: '#fff', border: '1px solid #e2e8f0',
+                  color: 'var(--t2)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <X size={16} />
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'}
+                onMouseOut={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <X size={18} />
                 </button>
               </div>
 
               {/* Rows */}
-              <div>
+              <div style={{ padding: '8px 0' }}>
                 {rows.map(([lbl, val, hi], i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.025 * i }}
-                    style={{ background: i % 2 === 0 ? '#fff' : '#fafbff' }}
+                    transition={{ delay: 0.05 * i }}
                   >
                     <Row label={lbl} value={val} highlight={hi} />
                   </motion.div>
                 ))}
               </div>
 
-              <div style={{ padding: '20px 24px 24px' }}>
+              <div style={{ padding: '24px 32px 32px', borderTop: '1px solid #f1f5f9', background: '#f8fafc' }}>
                 <button onClick={() => setShowData(false)} style={{
-                  width: '100%', padding: '14px', borderRadius: 12, border: 'none',
-                  background: 'linear-gradient(135deg, #4f6ef7, #7c3aed)',
-                  color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
-                  cursor: 'pointer',
+                  width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+                  background: 'var(--accent)',
+                  color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 800,
+                  cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
                 }}>
                   Cerrar
                 </button>

@@ -44,21 +44,37 @@ export default function ClienteModal({ cliente: c, onClose }) {
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="modal-hdr">
-            <div className="modal-av">
+          <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)' }}>
+            <div style={{
+              width: 50, height: 50, borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 800, fontSize: 18, color: '#fff',
+              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)', flexShrink: 0
+            }}>
               {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div className="modal-hdr-name">{c.nombreCompleto}</div>
-              <div className="modal-hdr-sub">
+            <div style={{ marginLeft: 16, flex: 1 }}>
+              <div className="modal-hdr-name" style={{ color: 'var(--t1)' }}>{c.nombreCompleto}</div>
+              <div style={{ fontSize: 13, color: 'var(--t3)', fontWeight: 600 }}>
                 {c.numPersonas} personas · {c.numHabitaciones} hab. · ${Number(c.ingresosMensuales||0).toLocaleString()}/mes
               </div>
             </div>
-            <button className="modal-close" onClick={onClose}>✕</button>
+            <button 
+              onClick={onClose}
+              style={{
+                width: 32, height: 32, borderRadius: 8, border: 'none',
+                background: '#f1f5f9', color: 'var(--t2)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = '#e2e8f0'}
+              onMouseOut={e => e.currentTarget.style.background = '#f1f5f9'}
+            >✕</button>
           </div>
 
           {/* Rows */}
-          <div style={{ padding: '6px 0' }}>
+          <div style={{ padding: '8px 0' }}>
             {ROWS.map(([lbl, val, hi], i) => (
               <motion.div
                 key={i}
@@ -67,15 +83,15 @@ export default function ClienteModal({ cliente: c, onClose }) {
                 transition={{ delay: 0.03 * i }}
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '11px 22px', gap: 12,
-                  borderBottom: '1px solid #f0f3fb',
-                  background: i % 2 === 0 ? '#fff' : '#fafbff',
+                  padding: '12px 32px', gap: 12,
+                  borderBottom: i === ROWS.length - 1 ? 'none' : '1px solid #f1f5f9',
+                  background: i % 2 === 0 ? '#fff' : '#fcfdfe',
                 }}
               >
-                <span style={{ fontSize: 14.5, color: '#5a6480', fontWeight: 500 }}>{lbl}</span>
+                <span style={{ fontSize: 14, color: 'var(--t2)', fontWeight: 600 }}>{lbl}</span>
                 <span style={{
-                  fontSize: 15.5, fontWeight: 700,
-                  color: hi ? '#4f6ef7' : '#0d1630',
+                  fontSize: 14.5, fontWeight: 700,
+                  color: hi ? 'var(--accent)' : 'var(--t1)',
                   textAlign: 'right', maxWidth: '60%',
                 }}>
                   {val || '—'}
@@ -84,14 +100,14 @@ export default function ClienteModal({ cliente: c, onClose }) {
             ))}
           </div>
 
-          <div style={{ padding: '14px 22px 20px' }}>
+          <div style={{ padding: '24px 32px 32px' }}>
             <motion.button
               className="btn btn-primary"
-              style={{ width: '100%' }}
-              whileTap={{ scale: 0.97 }}
+              style={{ width: '100%', justifyContent: 'center', padding: '14px' }}
+              whileTap={{ scale: 0.98 }}
               onClick={onClose}
             >
-              Cerrar
+              Cerrar Detalle
             </motion.button>
           </div>
         </motion.div>

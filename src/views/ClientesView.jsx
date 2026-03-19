@@ -7,7 +7,7 @@ import ClienteModal from '../components/ClienteModal';
 import { Search, Trash2, Eye, FileSpreadsheet, FileText } from 'lucide-react';
 import { useSearch } from '../context/SearchContext';
 
-const AVATAR_COLORS = ['#4f6ef7','#17c98a','#e84f8c','#f5a623','#a78bfa','#06b6d4','#f97316','#84cc16'];
+const AVATAR_COLORS = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#6366f1'];
 
 export default function ClientesView() {
   const [clientes, setClientes] = useState([]);
@@ -56,10 +56,10 @@ export default function ClientesView() {
   function exportPDF() {
     const doc = new jsPDF({ orientation: 'landscape', format: 'a4' });
     doc.setFontSize(15);
-    doc.setTextColor(13, 22, 48);
+    doc.setTextColor(15, 23, 42);
     doc.text('GENSY Inmobiliario — Registro de Clientes', 14, 15);
     doc.setFontSize(9);
-    doc.setTextColor(107, 119, 150);
+    doc.setTextColor(100, 116, 139);
     doc.text(`Total: ${clientes.length} registros  |  Generado el ${new Date().toLocaleDateString('es-DO')}`, 14, 21);
     autoTable(doc, {
       startY: 26,
@@ -79,8 +79,8 @@ export default function ClientesView() {
         c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-DO') : '—',
       ]),
       styles: { fontSize: 7.5, cellPadding: 3 },
-      headStyles: { fillColor: [79,110,247], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-      alternateRowStyles: { fillColor: [247,249,255] },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: 14, right: 14 },
     });
     doc.save(`GENSY_Clientes_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -106,25 +106,25 @@ export default function ClientesView() {
           <h1>Clientes</h1>
           <p>{clientes.length} registros · actualización en tiempo real</p>
         </div>
-        <div className="pg-actions">
-          <button className="btn btn-green" onClick={exportExcel}>
+        <div className="pg-actions" style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-primary" style={{ background: '#10b981' }} onClick={exportExcel}>
             <FileSpreadsheet size={15} /> Excel
           </button>
-          <button className="btn btn-red" onClick={exportPDF}>
+          <button className="btn btn-primary" style={{ background: '#ef4444' }} onClick={exportPDF}>
             <FileText size={15} /> PDF
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ maxWidth: 360, border: '1.5px solid var(--card-border)' }}>
-          <Search size={14} color="var(--t3)" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div className="search-wrap" style={{ maxWidth: 360 }}>
+          <Search size={16} color="var(--t3)" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nombre, trabajo o pago..." />
         </div>
         {search && (
-          <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: 12.5 }}
+          <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: 13 }}
             onClick={() => setSearch('')}>Limpiar</button>
         )}
       </div>
@@ -158,7 +158,7 @@ export default function ClientesView() {
               </thead>
               <tbody>
                 {filtered.map((c, i) => (
-                  <tr key={c.id || i} onClick={() => setSelected(c)}>
+                  <tr key={c.id || i} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
                     <td>
                       <div className="av-cell">
                         <div className="tbl-av" style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
@@ -166,13 +166,13 @@ export default function ClientesView() {
                         </div>
                         <div>
                           <p className="cell-n">{c.nombreCompleto}</p>
-                          <p className="cell-s">{c.lugarTrabajo || '—'}</p>
+                          <p style={{ fontSize: 12, color: 'var(--t3)' }}>{c.lugarTrabajo || '—'}</p>
                         </div>
                       </div>
                     </td>
                     <td>{c.numPersonas}</td>
                     <td>{c.numHabitaciones}</td>
-                    <td><strong style={{ color: '#4f6ef7' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</strong></td>
+                    <td><strong style={{ color: 'var(--accent)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</strong></td>
                     <td><span className={`badge ${badgeClass(c.cashOPrograma)}`}>{c.cashOPrograma || '—'}</span></td>
                     <td><span className={`badge ${c.cuentaBanco === 'Sí' ? 'bg-green' : 'bg-red'}`}>{c.cuentaBanco || '—'}</span></td>
                     <td><span className={`badge ${c.presentoTaxes === 'Sí' ? 'bg-blue' : 'bg-gray'}`}>{c.presentoTaxes || '—'}</span></td>
@@ -184,13 +184,13 @@ export default function ClientesView() {
                       <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                         <button title="Ver detalle"
                           onClick={() => setSelected(c)}
-                          className="icon-btn" style={{ width: 30, height: 30, borderRadius: 7 }}>
-                          <Eye size={14} />
+                          className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10 }}>
+                          <Eye size={16} />
                         </button>
                         <button title="Eliminar"
                           onClick={() => handleDelete(c.id, c.nombreCompleto)}
-                          className="icon-btn" style={{ width: 30, height: 30, borderRadius: 7, borderColor: '#fdedf4', color: '#e84f8c' }}>
-                          <Trash2 size={14} />
+                          className="icon-btn" style={{ width: 34, height: 34, borderRadius: 10, borderColor: '#fee2e2', color: '#ef4444' }}>
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>

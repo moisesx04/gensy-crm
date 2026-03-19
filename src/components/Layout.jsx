@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut } from 'lucide-react';
 import { subscribeClientes, logout } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 
@@ -46,7 +46,7 @@ export default function Layout({ children }) {
             onClick={() => setOpen(false)}
             style={{
               position: 'fixed', inset: 0, zIndex: 190,
-              background: 'rgba(10,15,46,.55)', backdropFilter: 'blur(3px)',
+              background: 'rgba(15, 23, 42, 0.1)', backdropFilter: 'blur(8px)',
             }}
           />
         )}
@@ -61,7 +61,9 @@ export default function Layout({ children }) {
         style={{ position: 'fixed', transformOrigin: 'left' }}
       >
         <div className="sb-logo">
-          <motion.div className="sb-icon" whileHover={{ scale: 1.05 }}>🏡</motion.div>
+          <motion.div className="sb-icon" whileHover={{ scale: 1.05 }}>
+            <Home size={22} />
+          </motion.div>
           <div>
             <h1>GENSY</h1>
             <span>CRM Inmobiliario</span>
@@ -74,41 +76,41 @@ export default function Layout({ children }) {
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={() => isMobile && setOpen(false)}
           >
-            <motion.span className="icon" whileHover={{ scale: 1.1 }}><Icon size={16} /></motion.span>
+            <motion.span className="icon" whileHover={{ scale: 1.1 }}><Icon size={18} /></motion.span>
             {label}
             {label === 'Clientes' && clientCount > 0 && (
               <span style={{
-                marginLeft: 'auto', fontSize: 10, fontWeight: 800,
-                background: '#4f6ef7', color: '#fff', padding: '1px 7px',
+                marginLeft: 'auto', fontSize: 11, fontStyle: 'normal', fontWeight: 800,
+                background: 'var(--accent)', color: '#fff', padding: '2px 8px',
                 borderRadius: 99, minWidth: 20, textAlign: 'center',
+                boxShadow: '0 4px 8px rgba(79, 70, 229, 0.2)'
               }}>{clientCount}</span>
             )}
           </NavLink>
         ))}
 
-        <p className="sb-label" style={{ marginTop: 12 }}>Sistema</p>
+        <p className="sb-label" style={{ marginTop: 24 }}>Sistema</p>
         <button className="nav-btn" onClick={() => navigate('/configuracion')}>
-          <span className="icon"><Settings size={16} /></span>
+          <span className="icon"><Settings size={18} /></span>
           Configuración
         </button>
 
         <div className="sb-footer">
           <motion.div 
             className="user-pill" 
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+            whileHover={{ backgroundColor: '#f1f5f9' }}
             onClick={async () => {
               if (window.confirm('¿Cerrar sesión?')) {
                 logout();
               }
             }}
-            style={{ cursor: 'pointer' }}
           >
             <div className="ua">G</div>
             <div style={{ flex: 1 }}>
               <p>GENSY Admin</p>
               <span>Administrador</span>
             </div>
-            <LogOut size={14} style={{ color: '#4a5578' }} />
+            <LogOut size={16} style={{ color: 'var(--t3)' }} />
           </motion.div>
         </div>
       </motion.aside>
@@ -135,13 +137,13 @@ export default function Layout({ children }) {
                 exit={{ rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                {open ? <X size={19} /> : <Menu size={19} />}
+                {open ? <X size={20} /> : <Menu size={20} />}
               </motion.div>
             </AnimatePresence>
           </motion.button>
 
           <div className="search-wrap">
-            <Search size={15} color="var(--t3)" />
+            <Search size={16} color="var(--t3)" />
             <input 
               placeholder="Buscar..." 
               value={searchQuery}
@@ -151,10 +153,18 @@ export default function Layout({ children }) {
 
           <div className="hdr-actions">
             <motion.button className="icon-btn" whileTap={{ scale: 0.9 }}>
-              <Bell size={17} />
+              <Bell size={18} />
               {clientCount > 0 && <span className="ndot" />}
             </motion.button>
-            <motion.div className="hdr-av" whileHover={{ scale: 1.05 }}>G</motion.div>
+            <motion.div className="hdr-av" whileHover={{ scale: 1.05 }}
+              style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 800, fontSize: 14, color: '#fff',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)', cursor: 'pointer'
+              }}
+            >G</motion.div>
           </div>
         </header>
 

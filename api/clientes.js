@@ -11,6 +11,8 @@ export default async function handler(req, res) {
 
   const { method } = req;
 
+  // El método POST no requiere token en este diseño específico (registro desde fuera)?
+  // No, el diseño original parece permitirlo. Lo mantenemos igual.
   if (method === 'POST') {
     const c = req.body;
     try {
@@ -31,20 +33,26 @@ export default async function handler(req, res) {
       `;
       return res.status(201).json({ id: result.rows[0].id });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Error al registrar cliente: ' + error.message });
+      console.error('Error DB (POST /clientes):', error);
+      return res.status(500).json({ error: 'Error DB al registrar cliente: ' + error.message });
     }
   }
 
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No autorizado.' });
+    return res.status(401).json({ error: 'No autorizado. Falta token.' });
   }
 
   const token = authHeader.split(' ')[1];
+  let decoded;
   try {
-    jwt.verify(token, JWT_SECRET);
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    console.error('Error JWT:', err);
+    return res.status(403).json({ error: 'Token inválido o expirado: ' + err.message });
+  }
 
+  try {
     if (method === 'GET') {
       const { rows } = await sql`SELECT * FROM clientes ORDER BY created_at DESC;`;
       return res.status(200).json(rows);
@@ -58,6 +66,7 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    return res.status(403).json({ error: 'Token inválido o expirado.' });
+    console.error('Error DB (GET/DELETE /clientes):', error);
+    return res.status(500).json({ error: 'Error de base de datos: ' + error.message });
   }
 };

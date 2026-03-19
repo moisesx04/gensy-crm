@@ -34,7 +34,7 @@ function fmtDate(iso) {
   return d.toLocaleDateString('es-DO');
 }
 
-const COLORS = ['#4f6ef7','#17c98a','#e84f8c','#f5a623','#a78bfa','#06b6d4'];
+const COLORS = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
 export default function DashboardView() {
   const [clientes, setClientes] = useState([]);
@@ -49,10 +49,10 @@ export default function DashboardView() {
   const programas = clientes.filter(c => (c.cashOPrograma || '').toLowerCase().includes('programa') || c.cashOPrograma === 'Ambos (Cash + Programa)').length;
 
   const STATS = [
-    { icon:'📋', label:'Solicitudes Totales',   val: total,    color:'#4f6ef7', bg:'#edf0ff', sub:'Registros en el sistema' },
-    { icon:'📅', label:'Registros Hoy',          val: hoy,      color:'#17c98a', bg:'#e6f9f2', sub:'Enviados hoy' },
-    { icon:'🏦', label:'Con Cuenta Bancaria',    val: conBanco, color:'#f5a623', bg:'#fff6e0', sub:`de ${total} clientes` },
-    { icon:'🤝', label:'Con Programas',          val: programas,color:'#e84f8c', bg:'#fdedf4', sub:'Asistencia de vivienda' },
+    { icon:'📋', label:'Solicitudes Totales',   val: total,    color:'var(--accent)', bg:'var(--accent-light)', sub:'Registros en el sistema' },
+    { icon:'📅', label:'Registros Hoy',          val: hoy,      color:'var(--success)', bg:'#ecfdf5', sub:'Enviados hoy' },
+    { icon:'🏦', label:'Con Cuenta Bancaria',    val: conBanco, color:'var(--warning)', bg:'#fffbeb', sub:`de ${total} clientes` },
+    { icon:'🤝', label:'Con Programas',          val: programas,color:'var(--secondary)', bg:'#f5f3ff', sub:'Asistencia de vivienda' },
   ];
 
   const formLink = `${window.location.origin}/form`;
@@ -90,9 +90,10 @@ export default function DashboardView() {
       </motion.div>
 
       {/* Link box */}
-      <motion.div className="link-box" initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay: 0.1 }}>
-        <span style={{ fontSize:13, fontWeight:700, color:'#4f6ef7', flexShrink:0 }}>🔗 Link del cliente:</span>
-        <code style={{ flex:1, fontFamily:'monospace', fontSize:12.5, color:'#4f6ef7', wordBreak:'break-all' }}>{formLink}</code>
+      <motion.div className="link-box" initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay: 0.1 }}
+        style={{ background: '#f8fafc', border: '1px solid var(--card-border)' }}>
+        <span style={{ fontSize:13, fontWeight:700, color:'var(--accent)', flexShrink:0 }}>🔗 Link del cliente:</span>
+        <code style={{ flex:1, fontFamily:'monospace', fontSize:12.5, color:'var(--t2)', wordBreak:'break-all' }}>{formLink}</code>
         <motion.button className="btn btn-primary" style={{ padding:'6px 13px', fontSize:12 }}
           whileTap={{ scale: 0.95 }} onClick={copyLink}>
           {copied ? '✅' : 'Copiar'}
@@ -129,10 +130,10 @@ export default function DashboardView() {
                   <div className="feed-text">
                     <strong>{c.nombreCompleto}</strong> —{' '}
                     {c.numPersonas} per. · {c.numHabitaciones} hab.
-                    {c.cashOPrograma && <span style={{ marginLeft: 6, fontSize: 11, color: '#4f6ef7', fontWeight: 700 }}>• {c.cashOPrograma}</span>}
+                    {c.cashOPrograma && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>• {c.cashOPrograma}</span>}
                   </div>
                   <div style={{ textAlign:'right', flexShrink:0 }}>
-                    <div style={{ fontWeight:700, fontSize:12, color:'#4f6ef7' }}>${Number(c.ingresosMensuales||0).toLocaleString()}/mes</div>
+                    <div style={{ fontWeight:700, fontSize:12, color:'var(--accent)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}/mes</div>
                     <div style={{ fontSize:10.5, color:'var(--t3)', marginTop:1 }}>{fmtDate(c.createdAt)}</div>
                   </div>
                 </motion.div>
@@ -162,7 +163,7 @@ export default function DashboardView() {
                 <motion.div key={i} className="rank-item"
                   initial={{ opacity:0, x:16 }} animate={{ opacity:1, x:0 }} transition={{ delay: 0.06 * i + 0.3 }}>
                   <div className="rank-info"><p style={{ fontSize:13 }}>{lbl}</p></div>
-                  <strong style={{ fontSize:13, color:'#4f6ef7' }}>{val}</strong>
+                  <strong style={{ fontSize:13, color:'var(--accent)' }}>{val}</strong>
                 </motion.div>
               ))}
             </div>
