@@ -1,12 +1,13 @@
-import { createPool } from '@vercel/postgres';
-
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
-});
+import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
+  // Verificar variables de entorno críticas
+  if (!process.env.POSTGRES_URL) {
+    return res.status(500).json({ error: 'Falta POSTGRES_URL en las variables de entorno.' });
+  }
+
   try {
-    await pool.sql`
+    await sql`
       CREATE TABLE IF NOT EXISTS clientes (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         nombre_completo TEXT NOT NULL,
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
       );
     `;
 
-    await pool.sql`
+    await sql`
       CREATE TABLE IF NOT EXISTS usuarios (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email TEXT UNIQUE NOT NULL,
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
       );
     `;
 
-    await pool.sql`
+    await sql`
       CREATE TABLE IF NOT EXISTS propiedades (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title TEXT NOT NULL,

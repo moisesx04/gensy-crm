@@ -1,19 +1,20 @@
-import { createPool } from '@vercel/postgres';
+import { sql } from '@vercel/postgres';
 import jwt from 'jsonwebtoken';
-
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
-});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
 export default async function handler(req, res) {
+  // Verificar variables de entorno críticas
+  if (!process.env.POSTGRES_URL) {
+    return res.status(500).json({ error: 'Falta POSTGRES_URL en las variables de entorno.' });
+  }
+
   const { method } = req;
 
   if (method === 'POST') {
     const c = req.body;
     try {
-      const result = await pool.sql`
+      const result = await sql`
         INSERT INTO clientes (
           nombre_completo, telefono, direccion, num_personas, num_habitaciones,
           edades, mascotas, tipo_identificacion, tipo_id_otro, numero_identificacion,
@@ -45,13 +46,13 @@ export default async function handler(req, res) {
     jwt.verify(token, JWT_SECRET);
 
     if (method === 'GET') {
-      const { rows } = await pool.sql`SELECT * FROM clientes ORDER BY created_at DESC;`;
+      const { rows } = await sql`SELECT * FROM clientes ORDER BY created_at DESC;`;
       return res.status(200).json(rows);
     }
 
     if (method === 'DELETE') {
       const { id } = req.query;
-      await pool.sql`DELETE FROM clientes WHERE id = ${id};`;
+      await sql`DELETE FROM clientes WHERE id = ${id};`;
       return res.status(200).json({ message: 'Cliente eliminado.' });
     }
 

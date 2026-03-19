@@ -1,14 +1,15 @@
-import { createPool } from '@vercel/postgres';
+import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
-});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
 export default async function handler(req, res) {
+  // Verificar variables de entorno críticas
+  if (!process.env.POSTGRES_URL) {
+    return res.status(500).json({ error: 'Falta POSTGRES_URL en las variables de entorno.' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -16,12 +17,12 @@ export default async function handler(req, res) {
   const { email, password } = req.body;
 
   try {
-    const countRes = await pool.sql`SELECT count(*) FROM usuarios;`;
+    const countRes = await sql`SELECT count(*) FROM usuarios;`;
     const count = parseInt(countRes.rows[0].count);
 
     if (count === 0) {
       const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.sql`
+      await sql`
         INSERT INTO usuarios (email, password_hash, nombre)
         VALUES (${email}, ${hashedPassword}, 'Admin');
       `;
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(201).json({ message: 'Primer administrador creado.', token, user: { email, nombre: 'Admin' } });
     }
 
-    const { rows } = await pool.sql`SELECT * FROM usuarios WHERE email = ${email};`;
+    const { rows } = await sql`SELECT * FROM usuarios WHERE email = ${email};`;
     const user = rows[0];
 
     if (!user) {
