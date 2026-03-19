@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
+// API de Login - Final Fix
 export default async function handler(req, res) {
   // Verificar variables de entorno críticas
   if (!process.env.POSTGRES_URL) {
