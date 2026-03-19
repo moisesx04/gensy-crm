@@ -625,25 +625,41 @@ export default function FormView() {
           @media (max-width: 950px) {
             .form-main-card { 
                flex-direction: column !important; 
-               min-height: auto !important; 
+               min-height: 100dvh !important; 
                border-radius: 0 !important; 
                box-shadow: none !important;
-               margin: -32px -16px !important;
-               width: calc(100% + 32px) !important;
+               margin: 0 !important;
+               width: 100vw !important;
+               position: fixed !important;
+               inset: 0 !important;
+               z-index: 1000 !important;
             }
             .form-left-panel { display: none !important; }
-            .form-right-panel { padding: 0 !important; }
-            .form-header-bar { padding: 20px 16px !important; }
-            .form-footer-nav { padding: 20px 16px !important; flex-direction: column-reverse; gap: 12px; }
-            .form-footer-nav button { width: 100% !important; justify-content: center; height: 52px; font-size: 15px !important; }
-            .mobile-grid-1 { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .form-right-panel { padding: 0 !important; height: 100% !important; }
+            .form-header-bar { padding: 12px 16px !important; height: 70px !important; background: #fff !important; }
+            .form-footer-nav { 
+              padding: 16px !important; 
+              flex-direction: column-reverse !important; 
+              gap: 8px !important;
+              padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+            .form-footer-nav button { width: 100% !important; justify-content: center; height: 50px; font-size: 15px !important; }
+            .mobile-grid-1 { grid-template-columns: 1fr !important; gap: 8px !important; }
             .mobile-opt-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-            div[style*="padding: '40px 60px'"] { padding: 24px 16px !important; }
+            
+            /* Body padding adjustment */
+            div[style*="padding: '40px 60px'"] { 
+              padding: 20px 16px !important; 
+              padding-bottom: 40px !important;
+              flex: 1 !important;
+            }
+            
+            form { height: calc(100dvh - 70px) !important; display: flex !important; flex-direction: column !important; }
           }
           @media (max-width: 480px) {
              .mobile-opt-grid { grid-template-columns: 1fr !important; }
-             h2 { font-size: 19px !important; }
-             .form-header-bar { padding: 16px !important; }
+             h2 { font-size: 18px !important; }
+             .form-header-bar { padding: 12px 16px !important; }
           }
         `}</style>
       </div>

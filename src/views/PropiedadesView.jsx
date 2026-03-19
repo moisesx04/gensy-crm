@@ -261,8 +261,13 @@ export default function PropiedadesView() {
       </AnimatePresence>
       
       <style>{`
-        .p-card:hover { transform: translateY(-8px); boxShadow: 0 20px 40px rgba(0,0,0,0.08) !important; borderColor: var(--accent) !important; }
+        .p-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important; border-color: var(--accent) !important; }
         .p-card:hover .p-header { background: linear-gradient(135deg, #eef3ff 0%, #e0e8ff 100%) !important; }
+        @media (max-width: 768px) {
+          .prop-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .page { padding: 16px !important; }
+          .pg-head { flex-direction: column !important; align-items: stretch !important; }
+        }
       `}</style>
     </div>
   );

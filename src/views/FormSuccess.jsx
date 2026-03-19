@@ -66,9 +66,20 @@ export default function FormSuccess() {
       >
         <style>{`
           @media (max-width: 600px) {
-            .form-success-card { padding: 40px 24px !important; border-radius: 0 !important; }
+            .form-success-card { 
+              padding: 40px 20px !important; 
+              border-radius: 20px !important; 
+              box-shadow: none !important;
+              max-width: 100% !important;
+            }
             h2 { font-size: 24px !important; }
             .success-msg { font-size: 14.5px !important; }
+            button { font-size: 15px !important; padding: 14px 20px !important; }
+          }
+          @media (max-width: 400px) {
+            .form-success-card { padding: 32px 16px !important; }
+            h2 { font-size: 20px !important; }
+            div[style*="font-size: 56"] { width: 80px !important; height: 80px !important; font-size: 44px !important; }
           }
         `}</style>
         <motion.div

@@ -43,11 +43,20 @@ body {
   background-color: var(--bg);
   color: var(--t1);
   min-height: 100vh;
+  min-height: 100dvh;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  width: 100%;
 }
 
-#root { display: flex; min-height: 100vh; }
+#root { 
+  display: flex; 
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow-x: hidden;
+}
 
 /* ── Scrollbar ─────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
@@ -355,13 +364,19 @@ tbody tr:hover { background: #f8fafc; }
 .hidden-desktop { display: none; }
 
 /* ── Responsive ─────────────────────────── */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 240px; }
+  .header { padding: 0 24px; }
+  .page { padding: 24px; }
+}
+
 @media (max-width: 900px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .main { margin-left: 0 !important; }
-  .page { padding: 24px 16px; }
-  .header { padding: 0 20px; }
-  .search-wrap { max-width: 240px; }
+  .sidebar { transform: translateX(-100%); width: 280px; }
+  .sidebar.open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
+  .main { margin-left: 0 !important; width: 100%; }
+  .page { padding: 20px 16px; }
+  .header { padding: 0 16px; justify-content: space-between; }
+  .search-wrap { display: none; }
   .hidden-mobile { display: none; }
   .hidden-desktop { display: block; }
 }
@@ -370,15 +385,24 @@ tbody tr:hover { background: #f8fafc; }
   .tbl-wrap { display: none; }
   .mobile-cards { display: flex; }
   .pg-head h1 { font-size: 24px; }
-  .header { height: 60px; }
-  .header .search-wrap { display: none; } /* Hide search in main header if space is tight */
-  .modal-box { border-radius: 20px; max-height: 95vh; }
+  .header { height: 64px; }
+  .modal-box { border-radius: 20px; max-height: 92vh; width: 95%; margin: 0 auto; }
 }
 
 @media (max-width: 480px) {
-  .modal-hdr { padding: 20px; gap: 12px; }
+  :root { --header-h: 60px; }
+  .pg-head { margin-bottom: 24px; }
+  .pg-head h1 { font-size: 22px; }
+  .modal-hdr { padding: 16px 20px; gap: 12px; }
   .modal-hdr-name { font-size: 18px; }
-  .btn { padding: 10px 16px; font-size: 13px; }
+  .btn { padding: 10px 16px; font-size: 13px; width: 100%; justify-content: center; }
   .stat-card { padding: 16px; }
   .stat-val { font-size: 24px; }
+  .mcard-body { grid-template-columns: 1fr; }
+}
+
+/* Safe Area Insets for modern iPhones */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .sidebar { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+  .modal-box { padding-bottom: env(safe-area-inset-bottom); }
 }

@@ -115,13 +115,20 @@ export default function Layout({ children }) {
         </div>
       </motion.aside>
 
-      {/* Main */}
-      <motion.main
-        className="main"
-        animate={{ marginLeft: open && !isMobile ? 'var(--sidebar-w)' : 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        style={{ flex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
-      >
+        <main
+          className="main"
+          style={{ 
+            flex: 1, 
+            minHeight: '100vh', 
+            minHeight: '100dvh',
+            display: 'flex', 
+            flexDirection: 'column',
+            marginLeft: open && !isMobile ? 'var(--sidebar-w)' : 0,
+            width: open && !isMobile ? 'calc(100% - var(--sidebar-w))' : '100%',
+            transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            overflowX: 'hidden'
+          }}
+        >
         {/* Header */}
         <header className="header">
           <motion.button
@@ -174,7 +181,7 @@ export default function Layout({ children }) {
 
         {/* Page content */}
         {children}
-      </motion.main>
+      </main>
     </div>
   );
 }
