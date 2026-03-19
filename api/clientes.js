@@ -1,5 +1,7 @@
-import { sql } from '@vercel/postgres';
+import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
+
+const sql = neon(process.env.POSTGRES_URL, { fullResults: true });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
 
