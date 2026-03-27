@@ -158,16 +158,6 @@ export default function DashboardView() {
     setTimeout(() => setter(false), 2000);
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
-        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <p style={{ color: 'var(--t3)', fontWeight: 600 }}>Cargando Panel Inteligente...</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
-
   return (
     <div className="page" style={{ maxWidth: 1400, margin: '0 auto' }}>
       <motion.div 
