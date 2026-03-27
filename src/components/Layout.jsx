@@ -184,10 +184,10 @@ export default function Layout({ children }) {
             </motion.button>
           )}
 
-          <div className="search-wrap hidden-mobile" style={{ position: 'relative', zIndex: 110 }}>
+          <div className="search-wrap" style={{ position: 'relative', zIndex: 110 }}>
             <Search size={16} color="var(--t3)" />
             <input 
-              placeholder={t('search_placeholder') + " clientes, propiedades..."} 
+              placeholder={t('search_placeholder')} 
               value={searchQuery}
               onChange={e => {
                 setSearchQuery(e.target.value);
