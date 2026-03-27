@@ -24,7 +24,10 @@ export default function PropiedadesView() {
   const [mapViews, setMapViews] = useState({});
   const [viewingProp, setViewingProp] = useState(null);
   const [viewingImgIdx, setViewingImgIdx] = useState(0);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const { searchQuery } = useSearch();
+
+  const isDev = localStorage.getItem('dev_mode') === 'true';
 
   useEffect(() => {
     const unsubProps = subscribeTo(getProperties, setProperties, 15000);
@@ -50,7 +53,41 @@ export default function PropiedadesView() {
     try {
       await deleteProperty(id);
       setProperties(prev => prev.filter(p => p.id !== id));
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } catch (err) { alert(`${t('prop_del_error')} ` + err.message); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.size} propiedades simultáneamente? Esta acción NO se puede deshacer y liberará espacio en la base de datos.`)) return;
+    try {
+      const ids = Array.from(selectedIds);
+      for (const id of ids) {
+        await deleteProperty(id);
+      }
+      setProperties(prev => prev.filter(c => !selectedIds.has(c.id)));
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert('Hubo un error al eliminar algunos registros: ' + err.message);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(p => p.id)));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
   };
 
   const filtered = properties.filter(p => {
@@ -280,18 +317,60 @@ export default function PropiedadesView() {
       </div>
 
       {/* ── Filter Tabs ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
-        {filterTabs.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`prop-filter-tab ${filter === f.key ? 'active' : ''}`}
-          >
-            {f.label}
-            <span className={`prop-filter-count ${filter === f.key ? 'active' : ''}`}>{f.count}</span>
-          </button>
-        ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {filterTabs.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`prop-filter-tab ${filter === f.key ? 'active' : ''}`}
+            >
+              {f.label}
+              <span className={`prop-filter-count ${filter === f.key ? 'active' : ''}`}>{f.count}</span>
+            </button>
+          ))}
+        </div>
+        {isDev && filtered.length > 0 && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', background: '#f8fafc', padding: '8px 12px', borderRadius: 12, border: '1px solid var(--card-border)' }}>
+            <input 
+              type="checkbox" 
+              checked={selectedIds.size === filtered.length}
+              onChange={toggleSelectAll}
+              style={{ width: 16, height: 16, accentColor: 'var(--accent)' }}
+            />
+            Seleccionar Todos
+          </label>
+        )}
       </div>
+
+      <AnimatePresence>
+        {selectedIds.size > 0 && isDev && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            style={{ marginBottom: 24, overflow: 'hidden' }}
+          >
+            <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', padding: '16px 24px', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16 }}>
+                  {selectedIds.size}
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#991b1b', fontSize: 16, fontWeight: 800 }}>Propiedades Seleccionadas</h4>
+                  <p style={{ margin: 0, color: '#b91c1c', fontSize: 13, fontWeight: 600 }}>Listas para liberar base de datos.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button className="btn btn-ghost" style={{ color: '#991b1b' }} onClick={() => setSelectedIds(new Set())}>Cancelar</button>
+                <button className="btn btn-primary" style={{ background: '#ef4444', boxShadow: '0 4px 12px -2px rgba(239, 68, 68, 0.4)' }} onClick={handleBulkDelete}>
+                  <Trash2 size={16} /> Eliminar {selectedIds.size}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Property Grid ── */}
       {filtered.length === 0 ? (
@@ -313,7 +392,7 @@ export default function PropiedadesView() {
             <motion.div key={p.id} layout className="card prop-card"
               style={{
                 overflow: 'hidden',
-                border: p.status === 'Rentada' ? '2px solid var(--success)' : '1px solid var(--card-border)',
+                border: selectedIds.has(p.id) ? '3px solid var(--accent)' : p.status === 'Rentada' ? '2px solid var(--success)' : '1px solid var(--card-border)',
                 background: '#fff'
               }}>
 
@@ -404,6 +483,16 @@ export default function PropiedadesView() {
 
                 {/* Top-right: tag + actions */}
                 <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center', zIndex: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {isDev && (
+                    <div onClick={e => e.stopPropagation()} style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', padding: '5px 8px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        style={{ width: 18, height: 18, cursor: 'pointer', accentColor: 'var(--accent)' }}
+                      />
+                    </div>
+                  )}
                   <span style={{
                     padding: '5px 12px', borderRadius: 99, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em',
                     background: p.tag === 'Venta' ? '#eff6ff' : '#f0f9ff',
