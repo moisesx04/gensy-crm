@@ -73,7 +73,7 @@ export default async function handler(req, res) {
         // Assignment update
         const { rows } = await sql`
           UPDATE propiedades 
-          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}, financiero = ${financiero ? JSON.stringify(financiero) : null}
+          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}, financiero = ${financiero ? JSON.stringify(financiero) : null}::jsonb
           WHERE id = ${id}
           RETURNING *;
         `;
@@ -101,6 +101,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
     console.error('[Propiedades Error]', error);
-    return res.status(500).json({ error: 'Error de base de datos. Intente de nuevo.' });
+    return res.status(500).json({ error: 'Error BD: ' + error.message });
   }
 }

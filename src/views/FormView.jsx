@@ -24,7 +24,7 @@ const SOCIAL_OPTS = [
 ];
 const COBRO_OPTS = [
   { label: 'Cheque de nómina',       emoji: '📑' },
-  { label: 'Depósito directo (ACH)', emoji: '🏦' },
+  { label: 'Depósito directo',       emoji: '🏦' },
   { label: 'Efectivo (Cash)',         emoji: '💵' },
 ];
 const PAGO_OPTS = [
@@ -148,8 +148,8 @@ export default function FormView() {
 
   const canAdvance = () => {
     if (step === 0) return f.nombreCompleto.trim() && f.numPersonas && f.numHabitaciones && f.edades.trim() && f.mascotas;
-    if (step === 1) return f.tipoIdentificacion && f.tipoSocial;
-    if (step === 2) return f.cuentaBanco && f.formaCobro && f.presentoTaxes && f.ingresosMensuales;
+    if (step === 1) return true;
+    if (step === 2) return true;
     if (step === 3) return f.lugarTrabajo.trim() && f.cashOPrograma;
     return true;
   };
@@ -430,7 +430,7 @@ export default function FormView() {
 
                     {/* ── STEP 1: Documentos ── */}
                     {step === 1 && (<div>
-                      <FInput label={t('lbl_id_type')} required>
+                      <FInput label={t('lbl_id_type')}>
                         <div className="mobile-opt-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 10 }}>
                           {TIPO_ID.map(({ label, emoji }) => (
                             <OptBtn key={label} label={t('val_' + label, { defaultValue: label })} emoji={emoji}
@@ -460,7 +460,7 @@ export default function FormView() {
                         )}
                       </AnimatePresence>
 
-                      <FInput label={t('lbl_tax_id')} required>
+                      <FInput label={t('lbl_tax_id')}>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                           {SOCIAL_OPTS.map(({ label, emoji }) => (
                             <OptBtn key={label} label={t('val_' + label, { defaultValue: label })} emoji={emoji}
@@ -496,21 +496,21 @@ export default function FormView() {
 
                     {/* ── STEP 2: Finanzas ── */}
                     {step === 2 && (<div>
-                      <FInput label={t('lbl_bank')} required>
+                      <FInput label={t('lbl_bank')}>
                         <div style={{ display: 'flex', gap: 12 }}>
                           {[{label: t('opt_yes') + ' 🏦', v:'Sí'},{label: t('opt_no'), v:'No'}].map(({label, v}) => (
                             <OptBtn key={v} label={label} selected={f.cuentaBanco === v} onClick={() => set('cuentaBanco', v)} />
                           ))}
                         </div>
                       </FInput>
-                      <FInput label={t('lbl_payment_form')} required>
+                      <FInput label={t('lbl_payment_form')}>
                         <div className="mobile-opt-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                           {COBRO_OPTS.map(({ label, emoji }) => (
                             <OptBtn key={label} label={t('val_' + label, { defaultValue: label })} emoji={emoji} selected={f.formaCobro === label} onClick={() => set('formaCobro', label)} />
                           ))}
                         </div>
                       </FInput>
-                      <FInput label={t('lbl_taxes_last_year')} required>
+                      <FInput label={t('lbl_taxes_last_year')}>
                         <div style={{ display: 'flex', gap: 12 }}>
                           {[{label: t('opt_yes') + ' ✅', v:'Sí'},{label: t('opt_no'), v:'No'}].map(({label, v}) => (
                             <OptBtn key={v} label={label} selected={f.presentoTaxes === v} onClick={() => set('presentoTaxes', v)} />
@@ -532,10 +532,10 @@ export default function FormView() {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                      <FInput label={t('lbl_monthly_income')} required hint={t('hint_monthly_income')}>
+                      <FInput label={t('lbl_monthly_income')} hint={t('hint_monthly_income')}>
                         <div style={{ position:'relative' }}>
                           <span style={{ position:'absolute',left:15,top:'50%',transform:'translateY(-50%)',fontWeight:700,color:'var(--t3)',pointerEvents:'none' }}>$</span>
-                          <input required type="number" value={f.ingresosMensuales} onChange={e => set('ingresosMensuales', e.target.value)}
+                          <input type="number" value={f.ingresosMensuales} onChange={e => set('ingresosMensuales', e.target.value)}
                             onFocus={() => setFocused('im')} onBlur={() => setFocused(null)}
                             style={{ ...inp('im'), paddingLeft: 30 }} placeholder="Ej: 3500" />
                         </div>
