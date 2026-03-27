@@ -235,7 +235,7 @@ export default function DashboardView() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h3 style={{ fontSize: 14, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Ganancia Neta Mensual</h3>
-              <div style={{ display: 'flex', alignItems: baseline, gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
                 <span style={{ fontSize: 48, fontWeight: 900, color: 'var(--t1)' }}>${stats.profitMonthly.toLocaleString()}</span>
                 <span style={{ color: 'var(--success)', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
                    +12% vs mes anterior
