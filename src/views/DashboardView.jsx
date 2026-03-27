@@ -184,7 +184,7 @@ export default function DashboardView() {
   }
 
   return (
-    <div className="page" style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: 60 }}>
+    <div className="page" style={{ paddingBottom: 60 }}>
       {/* Header */}
       <motion.div 
         className="pg-head" 
@@ -265,7 +265,7 @@ export default function DashboardView() {
         {/* Left Column: Recent Rents */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
-          style={{ background: '#fff', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
+          className="card" style={{ padding: 32 }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <div>
@@ -320,7 +320,7 @@ export default function DashboardView() {
         {/* Right Column: Smart Insights */}
         <motion.div 
           initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}
-          style={{ background: 'linear-gradient(180deg, #fff, #f8fafc)', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
+          className="card" style={{ background: 'linear-gradient(180deg, #fff, #f8fafc)', padding: 32 }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
