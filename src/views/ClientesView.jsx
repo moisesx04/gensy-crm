@@ -19,6 +19,7 @@ export default function ClientesView() {
   const [selected, setSelected] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   
@@ -41,9 +42,44 @@ export default function ClientesView() {
     try {
       await deleteCliente(id);
       setClientes(prev => prev.filter(c => c.id !== id));
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } catch (err) {
       alert(`${t('cli_del_error')} ` + err.message);
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.size} clientes simultáneamente? Esta acción NO se puede deshacer.`)) return;
+    try {
+      const ids = Array.from(selectedIds);
+      // Sequentially delete to respect vercel rate limts gracefully
+      for (const id of ids) {
+        await deleteCliente(id);
+      }
+      setClientes(prev => prev.filter(c => !selectedIds.has(c.id)));
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert('Hubo un error al eliminar algunos registros: ' + err.message);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
   };
 
   const filtered = useMemo(() => {
@@ -173,6 +209,35 @@ export default function ClientesView() {
         )}
       </div>
 
+      <AnimatePresence>
+        {selectedIds.size > 0 && isDev && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            style={{ marginBottom: 24, overflow: 'hidden' }}
+          >
+            <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', padding: '16px 24px', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16 }}>
+                  {selectedIds.size}
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#991b1b', fontSize: 16, fontWeight: 800 }}>Clientes Seleccionados</h4>
+                  <p style={{ margin: 0, color: '#b91c1c', fontSize: 13, fontWeight: 600 }}>Listos para borrar del sistema.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button className="btn btn-ghost" style={{ color: '#991b1b' }} onClick={() => setSelectedIds(new Set())}>Cancelar</button>
+                <button className="btn btn-primary" style={{ background: '#ef4444', boxShadow: '0 4px 12px -2px rgba(239, 68, 68, 0.4)' }} onClick={handleBulkDelete}>
+                  <Trash2 size={16} /> Eliminar {selectedIds.size}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="card">
         {loading ? (
           <div style={{ padding: 60, textAlign: 'center', color: 'var(--t3)' }}>{t('cli_loading')}</div>
@@ -195,6 +260,16 @@ export default function ClientesView() {
               <table>
                 <thead>
                   <tr>
+                    {isDev && (
+                      <th style={{ width: 40, paddingLeft: 24 }}>
+                        <input 
+                          type="checkbox" 
+                          checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                          onChange={toggleSelectAll}
+                          style={{ width: 18, height: 18, cursor: 'pointer', accentColor: 'var(--accent)' }}
+                        />
+                      </th>
+                    )}
                     <th>{t('cli_th_client')}</th>
                     <th>{t('cli_th_phone')}</th>
                     <th>{t('cli_th_income')}</th>
@@ -208,7 +283,21 @@ export default function ClientesView() {
                 </thead>
                 <tbody>
                   {filtered.map((c, i) => (
-                    <tr key={c.id || i} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                    <tr 
+                      key={c.id || i} 
+                      onClick={() => setSelected(c)} 
+                      style={{ cursor: 'pointer', background: selectedIds.has(c.id) ? '#eff6ff' : '' }}
+                    >
+                      {isDev && (
+                        <td style={{ paddingLeft: 24 }} onClick={e => e.stopPropagation()}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedIds.has(c.id)}
+                            onChange={() => toggleSelect(c.id)}
+                            style={{ width: 18, height: 18, cursor: 'pointer', accentColor: 'var(--accent)' }}
+                          />
+                        </td>
+                      )}
                       <td>
                         <div className="av-cell">
                           <div className="tbl-av" style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
@@ -244,8 +333,18 @@ export default function ClientesView() {
 
             <div className="mobile-cards">
               {filtered.map((c, i) => (
-                <div key={c.id || i} className="mobile-card" onClick={() => setSelected(c)}>
+                <div key={c.id || i} className="mobile-card" onClick={() => setSelected(c)} style={{ border: selectedIds.has(c.id) ? '2px solid var(--accent)' : '1px solid var(--card-border)' }}>
                   <div className="mcard-head">
+                    {isDev && (
+                      <div style={{ marginRight: 12 }} onClick={e => e.stopPropagation()}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.has(c.id)}
+                          onChange={() => toggleSelect(c.id)}
+                          style={{ width: 22, height: 22, cursor: 'pointer', accentColor: 'var(--accent)' }}
+                        />
+                      </div>
+                    )}
                     <div className="tbl-av" style={{ width: 44, height: 44, background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
                       {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
                     </div>
