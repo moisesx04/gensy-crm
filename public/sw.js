@@ -34,11 +34,3 @@ self.addEventListener('activate', (event) => {
     }).then(() => self.clients.claim()) // claim clients immediately
   );
 });
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
-});
