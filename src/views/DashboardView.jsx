@@ -213,7 +213,7 @@ export default function DashboardView() {
       {/* Top 4 KPI Cards */}
       <motion.div 
         variants={container} initial="hidden" animate="show"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, marginBottom: 40 }}
+        className="stats-grid" style={{ marginBottom: 40 }}
       >
         <motion.div variants={fadeUp} style={{ background: '#fff', borderRadius: 24, padding: 24, display: 'flex', alignItems: 'center', gap: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.02)' }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: '#eff6ff', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -260,12 +260,12 @@ export default function DashboardView() {
       </motion.div>
 
       {/* Main SaaS Body: Two Columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 32 }}>
+      <div className="dash-grid">
         
-        {/* Left Column (8 cols): Recent Rents */}
+        {/* Left Column: Recent Rents */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
-          style={{ gridColumn: 'span 8', background: '#fff', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
+          style={{ background: '#fff', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <div>
@@ -317,10 +317,10 @@ export default function DashboardView() {
           </div>
         </motion.div>
 
-        {/* Right Column (4 cols): Smart Insights */}
+        {/* Right Column: Smart Insights */}
         <motion.div 
           initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}
-          style={{ gridColumn: 'span 4', background: 'linear-gradient(180deg, #fff, #f8fafc)', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
+          style={{ background: 'linear-gradient(180deg, #fff, #f8fafc)', borderRadius: 24, padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.02)' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1e293b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

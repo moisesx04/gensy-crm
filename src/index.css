@@ -225,6 +225,13 @@ body {
 .pg-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
 .pg-head p  { font-size: 14px; color: var(--t2); margin-top: 4px; }
 
+.pg-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; width: 100%; justify-content: flex-start;
+}
+@media (min-width: 481px) {
+  .pg-actions { width: auto; justify-content: flex-end; align-items: center; }
+}
+
 /* ── Buttons ───────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -284,7 +291,7 @@ body {
 .card-head h3 { font-size: 16px; font-weight: 800; color: var(--t1); letter-spacing: -0.02em; }
 
 /* ── Stats ────────── */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 24px; margin-bottom: 32px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; margin-bottom: 32px; }
 .stat-card {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -515,6 +522,7 @@ tbody tr:hover { background: #f8fafc; }
   :root { --sidebar-w: 240px; }
   .header { padding: 0 24px; }
   .page { padding: 24px; }
+  .dash-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
@@ -538,8 +546,12 @@ tbody tr:hover { background: #f8fafc; }
 
 @media (max-width: 480px) {
   :root { --header-h: 60px; }
+  .page { padding: 16px 12px; }
+  .card-head { padding: 18px 20px; }
+  .card { border-radius: 16px; }
   .pg-head { margin-bottom: 24px; }
   .pg-head h1 { font-size: 22px; }
+  .pg-actions .btn { width: 100%; justify-content: center; }
   .modal-hdr { padding: 16px 20px; gap: 12px; }
   .modal-hdr-name { font-size: 18px; }
   .btn { padding: 10px 16px; font-size: 13px; width: 100%; justify-content: center; }

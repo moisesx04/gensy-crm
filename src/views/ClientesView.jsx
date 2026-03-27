@@ -261,7 +261,7 @@ export default function ClientesView() {
                       <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--accent)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</div>
                     </div>
                   </div>
-                  <div className="mcard-body" style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                  <div className="mcard-body" style={{ marginTop: 16 }}>
                     <div style={{ fontSize:12 }}><b style={{ color:'var(--t3)', display:'block', fontSize:10 }}>{t('cli_th_phone').toUpperCase()}</b> {c.telefono || '—'}</div>
                     <div style={{ fontSize:12 }}><b style={{ color:'var(--t3)', display:'block', fontSize:10 }}>ID</b> {c.numeroIdentificacion || '—'}</div>
                     <div style={{ fontSize:12 }}><b style={{ color:'var(--t3)', display:'block', fontSize:10 }}>{t('cli_th_payment').toUpperCase()}</b> <span className={`badge ${badgeClass(c.cashOPrograma)}`}>{t('val_' + c.cashOPrograma, { defaultValue: c.cashOPrograma })}</span></div>

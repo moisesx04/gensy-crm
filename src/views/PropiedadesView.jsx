@@ -913,7 +913,7 @@ export default function PropiedadesView() {
       <style>{`
         .prop-stats-bar {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
           gap: 16px;
           margin-bottom: 28px;
         }
