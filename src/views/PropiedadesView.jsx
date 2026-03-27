@@ -1,199 +1,408 @@
-import { MapPin, Bed, Bath, SquareIcon, Plus, Home, X, UserPlus, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useSearch } from '../context/SearchContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { subscribeClientes } from '../lib/api';
-
-const INITIAL_PROPS = [
-  { id: 1, title: 'Luxury Villa GENSY', loc: 'Piantini, Santo Domingo', price: '$450,000', beds: 5, baths: 4, sqft: '4,200', tag: 'Venta' },
-  { id: 2, title: 'Modern Loft Downtown', loc: 'Naco, Santo Domingo', price: '$280,000', beds: 2, baths: 2, sqft: '1,800', tag: 'Alquiler' },
-  { id: 3, title: 'Beach House Premium', loc: 'Juan Dolio, San Pedro', price: '$650,000', beds: 6, baths: 5, sqft: '6,000', tag: 'Venta' },
-  { id: 4, title: 'Garden Residence', loc: 'Los Cacicazgos, SD', price: '$320,000', beds: 4, baths: 3, sqft: '3,100', tag: 'Venta' },
-  { id: 5, title: 'Skyline Apartment', loc: 'Bella Vista, SD', price: '$390,000', beds: 3, baths: 2, sqft: '2,200', tag: 'Alquiler' },
-  { id: 6, title: 'Family Estate', loc: 'Arroyo Hondo, SD', price: '$580,000', beds: 7, baths: 6, sqft: '7,500', tag: 'Venta' },
-];
+import { MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, Calendar, Users, Search, Edit2, TrendingUp, Tag, FileText } from 'lucide-react';
+import { getProperties, addProperty, updateProperty, subscribeTo, subscribeClientes, deleteProperty } from '../lib/api';
+import { useSearch } from '../context/SearchContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PropiedadesView() {
-  const [properties, setProperties] = useState(INITIAL_PROPS);
+  const { t } = useLanguage();
+  const [properties, setProperties] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Todos');
   const [showAdd, setShowAdd] = useState(false);
   const [rentingProp, setRentingProp] = useState(null);
+  const [rentingDate, setRentingDate] = useState('');
+  const [rentingTime, setRentingTime] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
   const { searchQuery } = useSearch();
 
-  useEffect(() => subscribeClientes(setClientes), []);
+  useEffect(() => {
+    const unsubProps = subscribeTo(getProperties, setProperties, 15000);
+    const unsubClients = subscribeClientes(data => {
+      setClientes(data);
+      setLoading(false);
+    });
+    return () => { unsubProps(); unsubClients(); };
+  }, []);
 
-  const [newP, setNewP] = useState({ title:'', loc:'', price:'', beds:'', baths:'', tag:'Venta' });
+  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' });
+
+  // Computed stats
+  const totalProps = properties.length;
+  const rentadas = properties.filter(p => p.status === 'Rentada').length;
+  const disponibles = totalProps - rentadas;
+  const enVenta = properties.filter(p => p.tag === 'Venta' && p.status !== 'Rentada').length;
+  const enAlquiler = properties.filter(p => p.tag === 'Alquiler' && p.status !== 'Rentada').length;
+
+  const handleDelete = async (id, title) => {
+    if (!window.confirm(`${t('prop_del_confirm')} "${title}"? esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteProperty(id);
+      setProperties(prev => prev.filter(p => p.id !== id));
+    } catch (err) { alert(`${t('prop_del_error')} ` + err.message); }
+  };
 
   const filtered = properties.filter(p => {
     const matchesFilter = filter === 'Todos' || p.tag === filter;
-    const matchesSearch = !searchQuery || 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.loc.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = !searchQuery ||
+      (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.location || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    const id = properties.length + 1;
-    setProperties([{ ...newP, id }, ...properties]);
-    setShowAdd(false);
-    setNewP({ title:'', loc:'', price:'', beds:'', baths:'', tag:'Venta' });
+    try {
+      const sanitizedP = {
+        id: newP.id,
+        title: newP.title || 'Propiedad sin nombre',
+        loc: newP.loc || 'Sin ubicación',
+        price: newP.price || 'Consultar precio',
+        beds: newP.beds || 0,
+        baths: newP.baths || 0,
+        tag: newP.tag || 'Venta',
+        description: newP.description || ''
+      };
+
+      if (newP.id) {
+        const updatedProp = await updateProperty(sanitizedP);
+        setProperties(prev => prev.map(p => p.id === newP.id ? { ...updatedProp, status: p.status, cliente_id: p.cliente_id } : p));
+      } else {
+        const savedProp = await addProperty(sanitizedP);
+        setProperties(prev => [savedProp, ...prev]);
+      }
+
+      setShowAdd(false);
+      setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' });
+    } catch (err) { alert('Error guardando: ' + err.message); }
   };
+
+  const handleEditProp = (p) => {
+    setNewP({
+      id: p.id,
+      title: p.title || '',
+      loc: p.location || '',
+      price: p.price || '',
+      beds: p.beds || '',
+      baths: p.baths || '',
+      tag: p.tag || 'Venta',
+      description: p.description || ''
+    });
+    setShowAdd(true);
+  };
+
+  const handleAssign = async (cliente) => {
+    if (!rentingDate || !rentingTime) {
+      alert(t('prop_alert_datetime'));
+      return;
+    }
+    try {
+      const fecha_cita = `${rentingDate}T${rentingTime}:00Z`;
+      await updateProperty({
+        id: rentingProp.id,
+        status: 'Rentada',
+        cliente_id: cliente.id,
+        fecha_cita
+      });
+      alert(`${t('prop_alert_success')} ${cliente.nombreCompleto}. ${t('prop_appointment')} ${rentingDate} ${rentingTime}`);
+      setRentingProp(null);
+      setRentingDate('');
+      setRentingTime('');
+    } catch (err) { alert(err.message); }
+  };
+
+  const formatDate = (iso) => {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return iso; }
+  };
+
+  const cardGradient = (p) => {
+    if (p.status === 'Rentada') return 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)';
+    if (p.tag === 'Venta') return 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)';
+    return 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+  };
+  const cardAccent = (p) => {
+    if (p.status === 'Rentada') return 'var(--success)';
+    if (p.tag === 'Venta') return 'var(--accent)';
+    return 'var(--info)';
+  };
+
+  const filterTabs = [
+    { key: 'Todos', label: t('prop_filter_all'), count: totalProps },
+    { key: 'Venta', label: t('prop_filter_sale'), count: properties.filter(p => p.tag === 'Venta').length },
+    { key: 'Alquiler', label: t('prop_filter_rent'), count: properties.filter(p => p.tag === 'Alquiler').length },
+  ];
 
   return (
     <div className="page" style={{ animation: 'pageIn .4s ease-out' }}>
+      {/* ── Header ── */}
       <div className="pg-head">
         <div>
-          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.04em' }}>Propiedades</h1>
-          <p style={{ fontSize: 14, color: 'var(--t2)' }}>Portafolio exclusivo con {properties.length} unidades disponibles.</p>
+          <h1>{t('prop_title')}</h1>
+          <p>{t('prop_desc')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-          <Plus size={18} strokeWidth={2.5} /> Nueva Propiedad
+        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' }); setShowAdd(true); }}>
+          <Plus size={18} /> {t('prop_new')}
         </button>
       </div>
 
-      {/* Filter pills */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
-        {['Todos', 'Venta', 'Alquiler'].map(f => (
-          <button key={f}
-            onClick={() => setFilter(f)}
-            className={`btn ${filter === f ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ fontSize: 13, padding: '8px 20px' }}>
-            {f}
+      {/* ── Stats Bar ── */}
+      <div className="prop-stats-bar">
+        {[
+          { icon: <Home size={20} />, value: totalProps, label: 'Total', color: 'var(--accent)', bg: 'var(--accent-light)' },
+          { icon: <TrendingUp size={20} />, value: disponibles, label: 'Disponibles', color: '#10b981', bg: '#ecfdf5' },
+          { icon: <CheckCircle2 size={20} />, value: rentadas, label: 'Asignadas', color: '#f59e0b', bg: '#fffbeb' },
+        ].map((s, i) => (
+          <div key={i} className="prop-stat-card">
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, flexShrink: 0 }}>
+              {s.icon}
+            </div>
+            <div>
+              <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--t1)', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: 'var(--t3)', fontWeight: 600, marginTop: 2 }}>{s.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Filter Tabs ── */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
+        {filterTabs.map(f => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`prop-filter-tab ${filter === f.key ? 'active' : ''}`}
+          >
+            {f.label}
+            <span className={`prop-filter-count ${filter === f.key ? 'active' : ''}`}>{f.count}</span>
           </button>
         ))}
       </div>
 
-      <div className="prop-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
-        {filtered.map((p, i) => (
-          <motion.div key={p.id} layout className="p-card card" style={{ 
-            overflow: 'hidden', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <div className="p-header" style={{
-              height: 140, background: '#f8fafc',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-              borderBottom: '1px solid var(--card-border)'
-            }}>
+      {/* ── Property Grid ── */}
+      {filtered.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="prop-empty"
+        >
+          <div className="prop-empty-icon">🏠</div>
+          <h3>No hay propiedades{filter !== 'Todos' ? ` en "${filterTabs.find(f => f.key === filter)?.label}"` : ''}</h3>
+          <p>Agrega tu primera propiedad para comenzar a gestionarla aquí.</p>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' }); setShowAdd(true); }}>
+            <Plus size={16} /> Nueva propiedad
+          </button>
+        </motion.div>
+      ) : (
+        <div className="prop-grid">
+          {filtered.map((p) => (
+            <motion.div key={p.id} layout className="card prop-card"
+              style={{
+                overflow: 'hidden',
+                border: p.status === 'Rentada' ? '2px solid var(--success)' : '1px solid var(--card-border)',
+                background: '#fff'
+              }}>
+
+              {/* Card Banner */}
               <div style={{
-                width: 64, height: 64, borderRadius: 16, background: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 8px 16px rgba(79, 70, 229, 0.08)', color: 'var(--accent)',
-                border: '1px solid var(--card-border)'
+                height: 160,
+                background: cardGradient(p),
+                position: 'relative',
+                overflow: 'hidden'
               }}>
-                <Home size={32} strokeWidth={1.5} />
-              </div>
-              <span className="p-tag" style={{
-                position: 'absolute', top: 16, right: 16,
-                padding: '4px 12px', borderRadius: 99, fontSize: 11, fontWeight: 800,
-                textTransform: 'uppercase', letterSpacing: '0.05em',
-                background: p.tag === 'Venta' ? '#ecfdf5' : '#eff6ff',
-                color: p.tag === 'Venta' ? '#10b981' : '#3b82f6',
-                border: '1px solid rgba(255,255,255,0.4)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-              }}>
-                {p.tag}
-              </span>
-            </div>
+                {/* Decorative blobs */}
+                <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', filter: 'blur(12px)' }} />
+                <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)' }} />
 
-            <div className="p-body" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <h4 className="p-title" style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', marginBottom: 4, letterSpacing: '-0.02em' }}>{p.title}</h4>
-                  <p className="p-loc" style={{ fontSize: 13, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-                    <MapPin size={14} color="var(--accent)" /> {p.loc}
+                {/* Center icon */}
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                  width: 68, height: 68, borderRadius: 22, background: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 12px 28px -6px rgba(0,0,0,0.12)',
+                  color: cardAccent(p), zIndex: 5
+                }}>
+                  {p.status === 'Rentada' ? <CheckCircle2 size={34} /> : <Home size={34} strokeWidth={1.5} />}
+                </div>
+
+                {/* Top-right: tag + actions */}
+                <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center', zIndex: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <span style={{
+                    padding: '5px 12px', borderRadius: 99, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em',
+                    background: p.tag === 'Venta' ? '#eef2ff' : '#eff6ff',
+                    color: p.tag === 'Venta' ? 'var(--accent)' : 'var(--info)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                  }}>{p.tag === 'Venta' ? t('prop_filter_sale') : t('prop_filter_rent')}</span>
+                  <button className="btn-icon" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', width: 30, height: 30, borderRadius: '50%', color: 'var(--t2)' }}
+                    onClick={e => { e.stopPropagation(); handleEditProp(p); }}>
+                    <Edit2 size={13} />
+                  </button>
+                  <button className="btn-icon" style={{ background: 'rgba(254,226,226,0.9)', backdropFilter: 'blur(4px)', width: 30, height: 30, borderRadius: '50%', color: '#ef4444' }}
+                    onClick={e => { e.stopPropagation(); handleDelete(p.id, p.title); }}>
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+
+                {/* Rentada badge bottom-left */}
+                {p.status === 'Rentada' && (
+                  <div style={{ position: 'absolute', bottom: 12, left: 14, zIndex: 10 }}>
+                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 10, fontWeight: 900, background: 'var(--success)', color: '#fff', letterSpacing: '0.04em' }}>
+                      ✓ {t('prop_rented')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Card Body */}
+              <div style={{ padding: '22px 22px 20px' }}>
+                {/* Title + Price */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontSize: 17, fontWeight: 900, color: 'var(--t1)', lineHeight: 1.25, marginBottom: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</h4>
+                    <p style={{ fontSize: 12, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                      <MapPin size={12} /> {p.location}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <span style={{
+                      fontSize: 20, fontWeight: 900,
+                      background: `linear-gradient(135deg, ${cardAccent(p)}, var(--secondary))`,
+                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block', lineHeight: 1
+                    }}>{p.price}</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {p.description && (
+                  <p style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.5, marginBottom: 12, borderLeft: '3px solid var(--card-border)', paddingLeft: 10 }}>
+                    {p.description}
                   </p>
-                </div>
-                <span className="p-price" style={{ fontSize: 20, fontWeight: 900, color: 'var(--accent)', letterSpacing: '-0.04em' }}>{p.price}</span>
-              </div>
-              
-              <div className="p-footer" style={{ borderTop: '1px solid #f8fafc', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div className="p-feats" style={{ display: 'flex', gap: 16 }}>
-                  <span className="p-feat" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--t2)' }}>
-                    <Bed size={16} strokeWidth={2} /> {p.beds} <span style={{ fontWeight: 600, color: 'var(--t3)' }}>Hab</span>
-                  </span>
-                  <span className="p-feat" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--t2)' }}>
-                    <Bath size={16} strokeWidth={2} /> {p.baths} <span style={{ fontWeight: 600, color: 'var(--t3)' }}>Baños</span>
-                  </span>
-                </div>
-              </div>
+                )}
 
-              {p.tag === 'Alquiler' && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setRentingProp(p); }}
-                  className="btn btn-primary" 
-                  style={{ width: '100%', marginTop: 20, justifyContent: 'center' }}
-                >
-                  <UserPlus size={16} /> Rentar a Cliente
-                </button>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </div>
+                {/* Beds / Baths */}
+                <div style={{
+                  background: '#f8fafc', padding: '12px 16px', borderRadius: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+                  border: '1px solid var(--card-border)', marginBottom: (p.tag === 'Alquiler' && p.status !== 'Rentada') || p.status === 'Rentada' ? 14 : 0
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                    <Bed size={17} color="var(--t3)" />
+                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)' }}>{p.beds}</span>
+                    <span style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>Camas</span>
+                  </div>
+                  <div style={{ width: 1, height: 28, background: 'var(--card-border)' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                    <Bath size={17} color="var(--t3)" />
+                    <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--t1)' }}>{p.baths}</span>
+                    <span style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>Baños</span>
+                  </div>
+                </div>
 
+                {/* Assign Button */}
+                {p.tag === 'Alquiler' && p.status !== 'Rentada' && (
+                  <button onClick={() => setRentingProp(p)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                    <UserPlus size={15} /> {t('prop_assign')}
+                  </button>
+                )}
+
+                {/* Assigned client info */}
+                {p.status === 'Rentada' && (
+                  <div style={{ padding: '10px 14px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Users size={13} color="#059669" />
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#065f46' }}>{p.cliente_nombre || t('prop_assigned_client')}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Clock size={13} color="#059669" />
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#047857' }}>{formatDate(p.fecha_cita)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Modal: Assign Client ── */}
       <AnimatePresence>
         {rentingProp && (
           <div className="modal-backdrop" onClick={() => setRentingProp(null)}>
             <motion.div className="modal-box" onClick={e => e.stopPropagation()}
-              initial={{ opacity:0, scale:0.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:0.95, y:20 }}
-              style={{ maxWidth: 550, padding: 0 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              style={{ maxWidth: 680, padding: 0 }}
             >
               <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 12,
-                  background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff'
-                }}><UserPlus size={20} /></div>
-                <div style={{ marginLeft: 16 }}>
-                  <h2 className="modal-hdr-name" style={{ fontSize: 20 }}>Rentar Propiedad</h2>
-                  <p style={{ fontSize: 13, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.title}</p>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><UserPlus size={20} /></div>
+                <div style={{ marginLeft: 14, flex: 1 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>{t('prop_modal_assign')}</h2>
+                  <p style={{ fontSize: 12, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.title}</p>
                 </div>
-                <button 
-                  style={{ marginLeft: 'auto', background: '#f1f5f9', border: 'none', width: 32, height: 32, borderRadius: 8, cursor: 'pointer' }}
-                  onClick={() => setRentingProp(null)}>✕</button>
+                <button style={{ background: '#f1f5f9', border: 'none', width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontSize: 16, color: 'var(--t2)' }}
+                  onClick={() => { setRentingProp(null); setClientSearch(''); }}>✕</button>
               </div>
-              <div style={{ padding: 24 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 800, marginBottom: 16, color: 'var(--t1)' }}>Seleccionar Cliente Guardado</h3>
-                <div className="tbl-wrap" style={{ maxHeight: 350, overflowY: 'auto', border: '1px solid var(--card-border)', borderRadius: 16 }}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Cliente</th>
-                        <th>Ingresos</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clientes.length === 0 ? (
-                        <tr><td colSpan="3" style={{ textAlign:'center', padding:40, color:'var(--t3)', fontSize: 14 }}>No hay clientes registrados.</td></tr>
+              <div className="modal-scr" style={{ minHeight: 300 }}>
+                <div className="modal-body-grid" style={{ padding: 20 }}>
+                  <div className="modal-section-left">
+                    <h3 style={{ fontSize: 12, fontWeight: 800, marginBottom: 12, color: 'var(--t1)', borderLeft: '3px solid var(--accent)', paddingLeft: 8 }}>{t('prop_step1')}</h3>
+                    <div className="search-wrap" style={{ marginBottom: 14, background: '#f8fafc', padding: '8px 12px' }}>
+                      <Search size={13} color="var(--t3)" />
+                      <input placeholder={t('prop_search_client')} value={clientSearch} onChange={e => setClientSearch(e.target.value)} style={{ fontSize: 13 }} />
+                    </div>
+                    <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid var(--card-border)', borderRadius: 12, background: '#fff', padding: 4 }}>
+                      {loading ? (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_loading_clients')}</div>
+                      ) : clientes.length === 0 ? (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_no_clients')}</div>
                       ) : (
-                        clientes.map((c, i) => (
-                          <tr key={c.id || i}>
-                            <td>
-                              <div className="av-cell">
-                                <div className="tbl-av" style={{ width:32, height:32, fontSize:12, background: 'var(--accent)' }}>{c.nombreCompleto.charAt(0).toUpperCase()}</div>
-                                <div style={{ marginLeft: 10 }}>
-                                  <p className="cell-n" style={{ fontSize:13 }}>{c.nombreCompleto}</p>
-                                  <p style={{ fontSize:11, color: 'var(--t3)' }}>{c.lugarTrabajo}</p>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {clientes
+                            .filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase()))
+                            .map((c, idx, arr) => (
+                              <div key={c.id || idx} style={{ padding: '11px 12px', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                                  <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+                                    {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
+                                  </div>
+                                  <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombreCompleto || 'Sin nombre'}</div>
+                                    <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>{c.telefono || 'Sin teléfono'}</div>
+                                  </div>
                                 </div>
+                                <button className="btn" style={{ padding: '6px 14px', fontSize: 11, height: 'auto', background: 'var(--accent-light)', color: 'var(--accent)', border: 'none', fontWeight: 700 }}
+                                  onClick={() => handleAssign(c)}>
+                                  {t('prop_btn_assign')}
+                                </button>
                               </div>
-                            </td>
-                            <td style={{ fontSize:13, fontWeight:700, color: 'var(--t1)' }}>${Number(c.ingresosMensuales||0).toLocaleString()}</td>
-                            <td>
-                              <button className="btn btn-primary" style={{ padding:'6px 14px', fontSize:11, borderRadius:10 }}
-                                onClick={() => {
-                                  alert(`Asignado con éxito a ${c.nombreCompleto}`);
-                                  setRentingProp(null);
-                                }}>
-                                Seleccionar
-                              </button>
-                            </td>
-                          </tr>
-                        ))
+                            ))}
+                          {clientes.filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                            <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_no_results')} "{clientSearch}"</div>
+                          )}
+                        </div>
                       )}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
+
+                  <div className="modal-section-right">
+                    <h3 style={{ fontSize: 12, fontWeight: 800, marginBottom: 14, color: 'var(--t1)', borderLeft: '3px solid var(--accent)', paddingLeft: 8 }}>{t('prop_step2')}</h3>
+                    <div className="fg" style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 11, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={12} /> {t('prop_date')}</label>
+                      <input type="date" required value={rentingDate} onChange={e => setRentingDate(e.target.value)} style={{ padding: '10px', fontSize: 13 }} />
+                    </div>
+                    <div className="fg" style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 11, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={12} /> {t('prop_time')}</label>
+                      <input type="time" required value={rentingTime} onChange={e => setRentingTime(e.target.value)} style={{ padding: '10px', fontSize: 13 }} />
+                    </div>
+                    <div style={{ marginTop: 20, padding: 12, background: 'var(--accent-light)', borderRadius: 12, border: '1px dashed var(--accent)', opacity: 0.85 }}>
+                      <p style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600, lineHeight: 1.5 }}>
+                        {t('prop_alert_rented')} <b>{t('prop_rented')}</b>. {t('prop_alert_rented2')}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -201,72 +410,188 @@ export default function PropiedadesView() {
         )}
       </AnimatePresence>
 
+      {/* ── Modal: New / Edit Property ── */}
       <AnimatePresence>
         {showAdd && (
           <div className="modal-backdrop" onClick={() => setShowAdd(false)}>
             <motion.div className="modal-box" onClick={e => e.stopPropagation()}
-              initial={{ opacity:0, scale:0.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:0.95, y:20 }}
-              style={{ maxWidth: 500, padding: 0 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              style={{ maxWidth: 540, padding: 0, borderRadius: 24 }}
             >
-              <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 12,
-                  background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff'
-                }}><Plus size={20} /></div>
-                <h2 className="modal-hdr-name" style={{ fontSize: 20, marginLeft: 16 }}>Nueva Propiedad</h2>
-                <button 
-                  style={{ marginLeft: 'auto', background: '#f1f5f9', border: 'none', width: 32, height: 32, borderRadius: 8, cursor: 'pointer' }}
+              <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)', background: '#f8fafc', padding: '22px 28px' }}>
+                <div style={{ width: 46, height: 46, borderRadius: 14, background: newP.id ? 'linear-gradient(135deg,#fef3c7,#fde68a)' : 'linear-gradient(135deg,var(--accent-light),#c7d2fe)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: newP.id ? '#b45309' : 'var(--accent)' }}>
+                  {newP.id ? <Edit2 size={20} /> : <Plus size={22} strokeWidth={2.5} />}
+                </div>
+                <div style={{ marginLeft: 14 }}>
+                  <h2 style={{ fontSize: 19, fontWeight: 900, color: 'var(--t1)' }}>{newP.id ? 'Editar propiedad' : t('prop_modal_new')}</h2>
+                  <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>{newP.id ? `Modificando "${newP.title}"` : 'Registra un nuevo inmueble en tu sistema.'}</p>
+                </div>
+                <button style={{ marginLeft: 'auto', background: '#fff', border: '1px solid var(--card-border)', width: 34, height: 34, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t2)' }}
                   onClick={() => setShowAdd(false)}>✕</button>
               </div>
-              <form onSubmit={handleAdd} style={{ padding: 32 }}>
-                <div className="fg">
-                  <label>Título de la Propiedad</label>
-                  <input required placeholder="Ej: Penthouse Luxury" value={newP.title} onChange={e => setNewP({...newP, title: e.target.value})} />
-                </div>
-                <div className="fg">
-                  <label>Ubicación</label>
-                  <input required placeholder="Ej: Piantini, SD" value={newP.loc} onChange={e => setNewP({...newP, loc: e.target.value})} />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div className="fg">
-                    <label>Precio</label>
-                    <input required placeholder="$0.00" value={newP.price} onChange={e => setNewP({...newP, price: e.target.value})} />
+              <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', maxHeight: 'calc(90vh - 80px)' }}>
+                <div style={{ overflowY: 'auto', padding: '28px 28px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <label>{t('prop_lbl_title')}</label>
+                    <div style={{ position: 'relative' }}>
+                      <Home size={17} color="var(--t3)" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+                      <input placeholder={t('prop_ph_title')} value={newP.title} onChange={e => setNewP({ ...newP, title: e.target.value })} style={{ paddingLeft: 42 }} />
+                    </div>
                   </div>
-                  <div className="fg">
-                    <label>Tipo</label>
-                    <select value={newP.tag} onChange={e => setNewP({...newP, tag: e.target.value})}>
-                      <option>Venta</option>
-                      <option>Alquiler</option>
-                    </select>
+
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <label>{t('prop_lbl_loc')}</label>
+                    <div style={{ position: 'relative' }}>
+                      <MapPin size={17} color="var(--t3)" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+                      <input placeholder={t('prop_ph_loc')} value={newP.loc} onChange={e => setNewP({ ...newP, loc: e.target.value })} style={{ paddingLeft: 42 }} />
+                    </div>
+                  </div>
+
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FileText size={13} color="var(--t3)" /> Descripción <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>(opcional)</span></label>
+                    <textarea
+                      placeholder="Ej: Amplio apartamento con vista al mar, recién remodelado..."
+                      value={newP.description}
+                      onChange={e => setNewP({ ...newP, description: e.target.value })}
+                      rows={3}
+                      style={{ resize: 'vertical', lineHeight: 1.5, fontSize: 13 }}
+                    />
+                  </div>
+
+                  <div style={{ height: 1, background: 'var(--card-border)', width: '100%' }} />
+
+                  <div className="modal-form-grid" style={{ gap: 16 }}>
+                    <div className="fg" style={{ marginBottom: 0 }}>
+                      <label>{t('prop_lbl_price')}</label>
+                      <input placeholder="$0.00" value={newP.price} onChange={e => setNewP({ ...newP, price: e.target.value })} style={{ fontWeight: 700, color: 'var(--accent)' }} />
+                    </div>
+                    <div className="fg" style={{ marginBottom: 0 }}>
+                      <label>{t('prop_lbl_type')}</label>
+                      <select value={newP.tag} onChange={e => setNewP({ ...newP, tag: e.target.value })} style={{ fontWeight: 600 }}>
+                        <option value="Venta">{t('prop_filter_sale')}</option>
+                        <option value="Alquiler">{t('prop_filter_rent')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="modal-form-grid" style={{ gap: 16 }}>
+                    <div className="fg" style={{ marginBottom: 0 }}>
+                      <label>{t('prop_lbl_beds')}</label>
+                      <div style={{ position: 'relative' }}>
+                        <Bed size={15} color="var(--t3)" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+                        <input type="number" min="0" value={newP.beds} onChange={e => setNewP({ ...newP, beds: e.target.value })} style={{ paddingLeft: 40 }} />
+                      </div>
+                    </div>
+                    <div className="fg" style={{ marginBottom: 0 }}>
+                      <label>{t('prop_lbl_baths')}</label>
+                      <div style={{ position: 'relative' }}>
+                        <Bath size={15} color="var(--t3)" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+                        <input type="number" min="0" value={newP.baths} onChange={e => setNewP({ ...newP, baths: e.target.value })} style={{ paddingLeft: 40 }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div className="fg">
-                    <label>Habitaciones</label>
-                    <input type="number" required placeholder="0" value={newP.beds} onChange={e => setNewP({...newP, beds: e.target.value})} />
-                  </div>
-                  <div className="fg">
-                    <label>Baños</label>
-                    <input type="number" required placeholder="0" value={newP.baths} onChange={e => setNewP({...newP, baths: e.target.value})} />
-                  </div>
+
+                <div style={{ padding: '20px 28px 28px', marginTop: 'auto' }}>
+                  <button className="btn btn-primary" style={{
+                    width: '100%', padding: '15px', justifyContent: 'center', fontSize: 15,
+                    background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
+                    boxShadow: '0 8px 20px -4px rgba(79,70,229,0.35)'
+                  }}>
+                    {newP.id ? '💾 Guardar cambios' : t('prop_btn_save')}
+                  </button>
                 </div>
-                <button className="btn btn-primary" style={{ width:'100%', marginTop:12, padding:14, justifyContent: 'center' }}>
-                  Guardar Propiedad
-                </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-      
+
       <style>{`
-        .p-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important; border-color: var(--accent) !important; }
-        .p-card:hover .p-header { background: linear-gradient(135deg, #eef3ff 0%, #e0e8ff 100%) !important; }
+        .prop-stats-bar {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+        .prop-stat-card {
+          background: #fff;
+          border: 1px solid var(--card-border);
+          border-radius: var(--radius);
+          padding: 18px 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          box-shadow: var(--card-shadow);
+          transition: all 0.2s;
+        }
+        .prop-stat-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-lg); }
+
+        .prop-filter-tab {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 18px;
+          border-radius: 99px;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          border: 1.5px solid var(--card-border);
+          background: #fff;
+          color: var(--t2);
+          transition: all 0.2s;
+        }
+        .prop-filter-tab:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+        .prop-filter-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 4px 12px rgba(79,70,229,0.2); }
+
+        .prop-filter-count {
+          background: var(--card-border);
+          color: var(--t3);
+          border-radius: 99px;
+          font-size: 11px;
+          font-weight: 800;
+          padding: 1px 7px;
+          transition: all 0.2s;
+        }
+        .prop-filter-count.active { background: rgba(255,255,255,0.25); color: #fff; }
+
+        .prop-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 24px;
+        }
+        .prop-card {
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .prop-card:hover {
+          transform: translateY(-6px) scale(1.01);
+          box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1) !important;
+          border-color: var(--accent) !important;
+          z-index: 10;
+        }
+
+        .prop-empty {
+          text-align: center;
+          padding: 60px 32px;
+          border: 2px dashed var(--card-border);
+          border-radius: var(--radius);
+          background: #fdfdfe;
+        }
+        .prop-empty-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.4; }
+        .prop-empty h3 { font-size: 18px; font-weight: 800; color: var(--t2); margin-bottom: 8px; }
+        .prop-empty p { font-size: 13px; color: var(--t3); max-width: 280px; margin: 0 auto; }
+
         @media (max-width: 768px) {
+          .prop-stats-bar { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+          .prop-stat-card { padding: 14px 12px; gap: 10px; }
           .prop-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
           .page { padding: 16px !important; }
           .pg-head { flex-direction: column !important; align-items: stretch !important; }
+        }
+        @media (max-width: 480px) {
+          .prop-stats-bar { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>

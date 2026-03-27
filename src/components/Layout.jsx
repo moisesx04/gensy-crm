@@ -1,22 +1,41 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut } from 'lucide-react';
-import { subscribeClientes, logout } from '../lib/api';
+import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe } from 'lucide-react';
+import { subscribeClientes, logout, getNotifications, deleteNotification, subscribeTo } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/clientes', label: 'Clientes', icon: Users },
-  { to: '/propiedades', label: 'Propiedades', icon: Home },
+  { to: '/', label: 'nav_dashboard', icon: LayoutDashboard, end: true },
+  { to: '/clientes', label: 'nav_clientes', icon: Users },
+  { to: '/propiedades', label: 'nav_propiedades', icon: Home },
 ];
 
 export default function Layout({ children }) {
+  const location = useLocation();
+  const { t, language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const [clientCount, setClientCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotif, setShowNotif] = useState(false);
   const { searchQuery, setSearchQuery } = useSearch();
   const navigate = useNavigate();
+  
+  // Robust user data parsing to prevent blank screens
+  let storedUser = { email: "admin", nombre: "Admin" };
+  try {
+    const rawUser = localStorage.getItem('gensy_user');
+    if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+      storedUser = JSON.parse(rawUser);
+    }
+  } catch (e) {
+    console.warn("Failed to parse user data from localStorage:", e);
+  }
+
+  const userInitial = (storedUser?.nombre || storedUser?.email || 'A').charAt(0).toUpperCase();
+  const userName = storedUser?.nombre || storedUser?.email || 'Admin';
 
   useEffect(() => {
     const fn = () => {
@@ -31,8 +50,12 @@ export default function Layout({ children }) {
   }, []);
 
   useEffect(() => {
-    return subscribeClientes(c => setClientCount(c.length));
+    const unsubC = subscribeClientes(c => setClientCount(c.length));
+    const unsubN = subscribeTo(getNotifications, setNotifications, 15000);
+    return () => { unsubC(); unsubN(); };
   }, []);
+
+  const unreadCount = notifications.filter(n => !n.leida).length;
 
   return (
     <div style={{ display: 'flex', width: '100%', position: 'relative' }}>
@@ -65,34 +88,29 @@ export default function Layout({ children }) {
             <Home size={22} />
           </motion.div>
           <div>
-            <h1>GENSY</h1>
-            <span>CRM Inmobiliario</span>
+            <h1 style={{ fontSize: 14, lineHeight: 1.2 }}>{t('short_brand')}</h1>
+            <span style={{ fontSize: 12, fontWeight: 800 }}>Gensy frias</span>
           </div>
         </div>
 
-        <p className="sb-label">Principal</p>
+        <p className="sb-label">{t('nav_main')}</p>
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end}
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={() => isMobile && setOpen(false)}
           >
             <motion.span className="icon" whileHover={{ scale: 1.1 }}><Icon size={18} /></motion.span>
-            {label}
-            {label === 'Clientes' && clientCount > 0 && (
-              <span style={{
-                marginLeft: 'auto', fontSize: 11, fontStyle: 'normal', fontWeight: 800,
-                background: 'var(--accent)', color: '#fff', padding: '2px 8px',
-                borderRadius: 99, minWidth: 20, textAlign: 'center',
-                boxShadow: '0 4px 8px rgba(79, 70, 229, 0.2)'
-              }}>{clientCount}</span>
+            {t(label)}
+            {label === 'nav_clientes' && clientCount > 0 && (
+              <span className="count-badge">{clientCount}</span>
             )}
           </NavLink>
         ))}
 
-        <p className="sb-label" style={{ marginTop: 24 }}>Sistema</p>
+        <p className="sb-label" style={{ marginTop: 24 }}>{t('nav_system')}</p>
         <button className="nav-btn" onClick={() => navigate('/configuracion')}>
           <span className="icon"><Settings size={18} /></span>
-          Configuración
+          {t('nav_config')}
         </button>
 
         <div className="sb-footer">
@@ -100,35 +118,37 @@ export default function Layout({ children }) {
             className="user-pill" 
             whileHover={{ backgroundColor: '#f1f5f9' }}
             onClick={async () => {
-              if (window.confirm('¿Cerrar sesión?')) {
+              if (window.confirm(t('logout_confirm'))) {
                 logout();
               }
             }}
           >
-            <div className="ua">G</div>
+            <div className="ua">{userInitial}</div>
             <div style={{ flex: 1 }}>
-              <p>GENSY Admin</p>
-              <span>Administrador</span>
+              <p>{userName}</p>
+              <span>Admin</span>
             </div>
             <LogOut size={16} style={{ color: 'var(--t3)' }} />
           </motion.div>
+          <div style={{ padding: '12px 16px', fontSize: 10, color: 'var(--t3)', textAlign: 'center', opacity: 0.7 }}>
+            {t('developed_by_text')}
+          </div>
         </div>
       </motion.aside>
 
-        <main
-          className="main"
-          style={{ 
-            flex: 1, 
-            minHeight: '100vh', 
-            minHeight: '100dvh',
-            display: 'flex', 
-            flexDirection: 'column',
-            marginLeft: open && !isMobile ? 'var(--sidebar-w)' : 0,
-            width: open && !isMobile ? 'calc(100% - var(--sidebar-w))' : '100%',
-            transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            overflowX: 'hidden'
-          }}
-        >
+      <main
+        className="main"
+        style={{ 
+          flex: 1, 
+          minHeight: '100dvh',
+          display: 'flex', 
+          flexDirection: 'column',
+          marginLeft: open && !isMobile ? 'var(--sidebar-w)' : 0,
+          width: open && !isMobile ? 'calc(100% - var(--sidebar-w))' : '100%',
+          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflowX: 'hidden'
+        }}
+      >
         {/* Header */}
         <header className="header">
           <motion.button
@@ -149,22 +169,88 @@ export default function Layout({ children }) {
             </AnimatePresence>
           </motion.button>
 
-          <div className="search-wrap hidden-mobile">
-            <Search size={16} color="var(--t3)" />
-            <input 
-              placeholder="Buscar..." 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </div>
+          {location.pathname !== '/propiedades' && (
+            <div className="search-wrap hidden-mobile">
+              <Search size={16} color="var(--t3)" />
+              <input 
+                placeholder={t('search_placeholder')} 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+          )}
 
-          <div className="hdr-actions">
-            <motion.button className="icon-btn hidden-mobile" whileTap={{ scale: 0.9 }}>
+          <div className="hdr-actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button 
+              type="button"
+              onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
+                background: '#f8fafc', color: '#64748b', fontSize: 12, fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <Globe size={14} /> {language === 'es' ? 'EN' : 'ES'}
+            </button>
+            <motion.button className="icon-btn" 
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowNotif(!showNotif)}
+            >
               <Bell size={18} />
-              {clientCount > 0 && <span className="ndot" />}
+              {unreadCount > 0 && <span className="ndot" style={{ width: 8, height: 8, top: 10, right: 10 }} />}
             </motion.button>
-            <div className="hidden-desktop" style={{ fontWeight: 800, fontSize: 16, color: 'var(--accent)', marginRight: 'auto' }}>
-              GENSY
+
+            <AnimatePresence>
+              {showNotif && (
+                <>
+                  <div style={{ position:'fixed', inset:0, zIndex:998 }} onClick={() => setShowNotif(false)} />
+                  <motion.div 
+                    initial={{ opacity:0, y:10, scale:0.95 }}
+                    animate={{ opacity:1, y:0, scale:1 }}
+                    exit={{ opacity:0, y:10, scale:0.95 }}
+                    style={{
+                      position: 'absolute', top: '100%', right: 0, marginTop: 12,
+                      width: 320, background: '#fff', borderRadius: 16, border: '1px solid var(--card-border)',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.12)', zIndex: 999, overflow: 'hidden'
+                    }}
+                  >
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontWeight: 800, fontSize: 14 }}>{t('notifications')}</span>
+                      <button style={{ border:'none', background:'none', color:'var(--accent)', fontSize:11, fontWeight:700, cursor:'pointer' }}
+                        onClick={() => deleteNotification().then(() => setNotifications([]))}>{t('clear')}</button>
+                    </div>
+                    <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding:40, textAlign:'center', color:'var(--t3)', fontSize:13 }}>{t('no_notifications')}</div>
+                      ) : (
+                        notifications.map(n => (
+                          <div key={n.id} style={{ padding: '12px 20px', borderBottom: '1px solid #f8fafc', position:'relative' }}>
+                            <div style={{ display:'flex', gap:10 }}>
+                              <div style={{ width:32, height:32, borderRadius:8, background: n.tipo === 'cita' ? '#ecfdf5' : '#eff6ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                {n.tipo === 'cita' ? <Calendar size={16} color="#059669" /> : <Bell size={16} color="#3b82f6" />}
+                              </div>
+                              <div style={{ flex:1 }}>
+                                <p style={{ fontSize:13, fontWeight:700, margin:0 }}>{n.titulo}</p>
+                                <p style={{ fontSize:12, color:'var(--t2)', marginTop:2 }}>{n.mensaje}</p>
+                                <p style={{ fontSize:10, color:'var(--t3)', marginTop:4 }}>{new Date(n.created_at).toLocaleDateString()}</p>
+                              </div>
+                              <button style={{ border:'none', background:'none', padding:4, opacity:0.4, cursor:'pointer' }}
+                                onClick={() => deleteNotification(n.id).then(() => setNotifications(prev => prev.filter(x => x.id !== n.id)))}>
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
+            <div className="hidden-desktop" style={{ fontWeight: 800, fontSize: 13, color: 'var(--accent)', marginRight: 'auto', lineHeight: 1.2 }}>
+              {t('brand_name')}
             </div>
             <motion.div className="hdr-av" whileHover={{ scale: 1.05 }}
               onClick={() => navigate('/configuracion')}
@@ -175,13 +261,35 @@ export default function Layout({ children }) {
                 fontWeight: 800, fontSize: 13, color: '#fff',
                 boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)', cursor: 'pointer'
               }}
-            >G</motion.div>
+            >{userInitial}</motion.div>
           </div>
         </header>
 
         {/* Page content */}
-        {children}
+        <div style={{ flex: 1 }}>{children}</div>
+        
+        {/* Persistent Footer */}
+        <footer style={{ padding: '24px', textAlign: 'center', borderTop: '1px solid var(--card-border)', background: '#fff' }}>
+          <p style={{ fontSize: 12, color: 'var(--t3)', fontWeight: 600 }}>
+            {t('developed_by_text')}
+          </p>
+        </footer>
       </main>
+      
+      <style>{`
+        .count-badge {
+          margin-left: auto;
+          font-size: 11px;
+          font-weight: 800;
+          background: var(--accent);
+          color: #fff;
+          padding: 2px 8px;
+          border-radius: 99px;
+          min-width: 20px;
+          text-align: center;
+          box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2);
+        }
+      `}</style>
     </div>
   );
 }

@@ -4,13 +4,14 @@ import jwt from 'jsonwebtoken';
 
 const sql = neon(process.env.POSTGRES_URL, { fullResults: true });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gensy-secret-key-2026';
-
-// API de Login - Final Fix
+// API de Login
 export default async function handler(req, res) {
   // Verificar variables de entorno críticas
   if (!process.env.POSTGRES_URL) {
-    return res.status(500).json({ error: 'Falta POSTGRES_URL en las variables de entorno.' });
+    return res.status(500).json({ error: 'Configuración del servidor incompleta.' });
+  }
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({ error: 'Configuración de seguridad del servidor incompleta.' });
   }
 
   if (req.method !== 'POST') {
@@ -19,20 +20,11 @@ export default async function handler(req, res) {
 
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
+  }
+
   try {
-    const countRes = await sql`SELECT count(*) FROM usuarios;`;
-    const count = parseInt(countRes.rows[0].count);
-
-    if (count === 0) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await sql`
-        INSERT INTO usuarios (email, password_hash, nombre)
-        VALUES (${email}, ${hashedPassword}, 'Admin');
-      `;
-      const token = jwt.sign({ email, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
-      return res.status(201).json({ message: 'Primer administrador creado.', token, user: { email, nombre: 'Admin' } });
-    }
-
     const { rows } = await sql`SELECT * FROM usuarios WHERE email = ${email};`;
     const user = rows[0];
 
@@ -45,10 +37,14 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
     return res.status(200).json({ token, user: { email: user.email, nombre: user.nombre } });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Error en el servidor: ' + error.message });
+    console.error('[Login Error]', error);
+    return res.status(500).json({ error: 'Error en el servidor. Intente de nuevo.' });
   }
 };

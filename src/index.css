@@ -37,6 +37,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -75,7 +76,8 @@ body {
   display: flex; flex-direction: column;
   padding: 32px 16px;
   z-index: 200;
-  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+  transition: transform .2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .sidebar.closed { transform: translateX(-100%); }
 
@@ -145,7 +147,8 @@ body {
   flex: 1; margin-left: var(--sidebar-w);
   display: flex; flex-direction: column;
   min-height: 100vh;
-  transition: margin-left .3s cubic-bezier(.4,0,.2,1);
+  will-change: margin-left, width;
+  transition: margin-left .2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .main.wide { margin-left: 0; }
 
@@ -202,10 +205,10 @@ body {
 /* ══════════════════════════════════════════════
    PAGE SHELL
    ══════════════════════════════════════════════ */
-.page { padding: 32px; flex: 1; animation: pageIn .4s cubic-bezier(.16,1,.3,1); }
+.page { padding: 32px; flex: 1; animation: pageIn .25s cubic-bezier(0.16, 1, 0.3, 1) forwards; will-change: opacity, transform; }
 
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(15px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -221,7 +224,8 @@ body {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 11px 22px; border-radius: 10px;
   font-family: inherit; font-size: 14px; font-weight: 700;
-  cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap;
+  cursor: pointer; border: none; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); white-space: nowrap;
+  will-change: transform, box-shadow, background-color;
 }
 .btn-primary {
   background: var(--accent); color: #fff;
@@ -233,6 +237,18 @@ body {
   border: 1px solid var(--card-border);
 }
 .btn-ghost:hover { background: #f8fafc; border-color: var(--t3); }
+.btn-outline {
+  background: transparent; color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+.btn-outline:hover { background: var(--accent-light); }
+.btn-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: none; display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; font-size: 14px;
+  background: #f1f5f9; color: var(--t2);
+}
+.btn-icon:hover { background: #e2e8f0; }
 
 /* ── Cards ─────────────────────────────── */
 .card {
@@ -317,7 +333,9 @@ body {
 
 /* ── Tables & Cards ────────── */
 .tbl-wrap { overflow-x: auto; border-radius: 12px; }
-table { width: 100%; border-collapse: collapse; min-width: 800px; } /* Ensures table content is readable with scroll if card view is not used */
+.tbl-wrap table { min-width: 800px; }
+table { width: 100%; border-collapse: collapse; } 
+/* Ensuring table content is readable with scroll if card view is not used */
 thead th {
   padding: 16px 24px; text-align: left;
   font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
@@ -383,21 +401,63 @@ tbody tr:hover { background: #f8fafc; }
 
 /* ── Modal ────────── */
 .modal-backdrop {
-  position: fixed; inset: 0; z-index: 500;
+  position: fixed; inset: 0; z-index: 9999;
   background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal-box {
   background: #fff; border-radius: 24px;
   width: 100%; max-width: 680px; max-height: 90vh;
-  overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
-  animation: pageIn .3s cubic-bezier(.16,1,.3,1);
+  display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+  animation: pageIn .2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+.modal-scr {
+  overflow-y: auto; flex: 1;
 }
 .modal-hdr {
   padding: 24px 32px; border-bottom: 1px solid var(--card-border);
   display: flex; align-items: center; gap: 16px;
 }
 .modal-hdr-name { font-size: 22px; font-weight: 800; color: var(--t1); }
+.modal-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 32px;
+  padding: 32px;
+}
+.modal-section-right {
+  border-left: 1px solid var(--card-border);
+  padding-left: 32px;
+}
+@media (max-width: 640px) {
+  .modal-body-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 20px;
+  }
+  .modal-section-right {
+    border-left: none;
+    border-top: 1px solid var(--card-border);
+    padding-left: 0;
+    padding-top: 24px;
+  }
+}
+
+.modal-form-content {
+  padding: 32px;
+}
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 480px) {
+  .modal-form-content { padding: 24px 20px; }
+  .modal-form-grid { grid-template-columns: 1fr; gap: 0; }
+}
 
 /* ── Login View (Light) ───────────────── */
 .login-page {

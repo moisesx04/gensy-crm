@@ -25,3 +25,6 @@ dist-ssr
 
 .vercel
 .env*.local
+
+# Build output and lint reports
+eslint_out.txt

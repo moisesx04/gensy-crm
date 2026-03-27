@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ClipboardList } from 'lucide-react';
+import { X, ClipboardList, Globe, Edit2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 function Row({ label, value, highlight }) {
   return (
@@ -22,27 +23,28 @@ export default function FormSuccess() {
   const { state } = useLocation();
   const f = state?.formData;
   const [showData, setShowData] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
 
   const rows = f ? [
-    ['👤 Nombre Completo',   f.nombreCompleto, true],
-    ...(f.telefono ? [['📱 Teléfono', f.telefono]] : []),
-    ...(f.direccion ? [['📍 Dirección', f.direccion]] : []),
-    ['👥 Personas',          f.numPersonas],
-    ['🛏 Habitaciones',      f.numHabitaciones],
-    ['🎂 Edades',            f.edades],
-    ['🐾 Mascotas',          f.mascotas],
-    ['🪪 Tipo de ID',        f.tipoIdentificacion + (f.tipoIdOtro ? ` (${f.tipoIdOtro})` : '')],
-    ...(f.numeroIdentificacion ? [['🔢 Número de ID',   f.numeroIdentificacion]] : []),
-    ['🔐 No. Fiscal',        f.tipoSocial],
-    ...(f.numeroSocial ? [['🔢 Número Fiscal',          `***-**-${String(f.numeroSocial).slice(-4)}`]] : []),
-    ['📊 Credit Score',      f.creditScore || 'No indicado'],
-    ['🏦 Cuenta de Banco',   f.cuentaBanco],
-    ['💵 Forma de cobro',    f.formaCobro],
-    ['📑 Presentó Taxes',    f.presentoTaxes === 'Sí' ? `Sí ($${Number(f.montoTaxes||0).toLocaleString()})` : 'No'],
-    ['🏢 Trabaja en',        f.lugarTrabajo],
-    ['💳 Pago de renta',     f.cashOPrograma],
-    ...(f.programaAsistencia ? [['🤝 Programa',         f.programaAsistencia]] : []),
-    ['💰 Ingresos/mes',      `$${Number(f.ingresosMensuales||0).toLocaleString()}`, true],
+    ['👤 ' + t('lbl_fullname'),   f.nombreCompleto, true],
+    ...(f.telefono ? [['📱 ' + t('lbl_phone'), f.telefono]] : []),
+    ...(f.direccion ? [['📍 ' + t('lbl_address'), f.direccion]] : []),
+    ['👥 ' + t('lbl_people'),          f.numPersonas],
+    ['🛏 ' + t('lbl_rooms'),      f.numHabitaciones],
+    ['🎂 ' + t('lbl_ages'),            f.edades],
+    ['🐾 ' + t('lbl_pets'),          f.mascotas],
+    ['🪪 ' + t('lbl_id_type'),        t('val_' + f.tipoIdentificacion, { defaultValue: f.tipoIdentificacion }) + (f.tipoIdOtro ? ` (${f.tipoIdOtro})` : '')],
+    ...(f.numeroIdentificacion ? [['🔢 ' + t('lbl_id_number', { type: 'ID' }),   f.numeroIdentificacion]] : []),
+    ['🔐 ' + t('lbl_tax_id'),        t('val_' + f.tipoSocial, { defaultValue: f.tipoSocial })],
+    ...(f.numeroSocial ? [['🔢 ' + t('lbl_tax_number', { type: 'Tax' }),          `***-**-${String(f.numeroSocial).slice(-4)}`]] : []),
+    ['📊 ' + t('lbl_credit_score'),      f.creditScore || '—'],
+    ['🏦 ' + t('lbl_bank'),   t('val_' + f.cuentaBanco, { defaultValue: f.cuentaBanco })],
+    ['💵 ' + t('lbl_payment_form'),    t('val_' + f.formaCobro, { defaultValue: f.formaCobro })],
+    ['📑 ' + t('lbl_taxes_last_year'),    f.presentoTaxes === 'Sí' ? `${t('opt_yes')} ($${Number(f.montoTaxes||0).toLocaleString()})` : t('opt_no')],
+    ['🏢 ' + t('lbl_workplace'),        f.lugarTrabajo],
+    ['💳 ' + t('lbl_rent_payment'),     t('val_' + f.cashOPrograma, { defaultValue: f.cashOPrograma })],
+    ...(f.programaAsistencia ? [['🤝 ' + t('lbl_program'),         t('val_' + f.programaAsistencia, { defaultValue: f.programaAsistencia })]] : []),
+    ['💰 ' + t('lbl_monthly_income'),      `$${Number(f.ingresosMensuales||0).toLocaleString()}`, true],
   ] : [];
 
   return (
@@ -62,8 +64,23 @@ export default function FormSuccess() {
           background: '#fff', borderRadius: 24,
           padding: '56px 48px', maxWidth: 580, width: '100%',
           textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
+          position: 'relative'
         }}
       >
+        <div style={{ position: 'absolute', top: 20, right: 20 }}>
+          <button 
+            type="button"
+            onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
+              background: '#f8fafc', color: '#64748b', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            <Globe size={14} /> {language === 'es' ? 'EN' : 'ES'}
+          </button>
+        </div>
         <style>{`
           @media (max-width: 600px) {
             .form-success-card { 
@@ -96,11 +113,11 @@ export default function FormSuccess() {
         >🎉</motion.div>
 
         <h2 style={{ fontSize: 32, fontWeight: 800, color: 'var(--t1)', marginBottom: 12, letterSpacing: '-0.03em' }}>
-          ¡Solicitud Enviada!
+          {t('success_title')}
         </h2>
         <p style={{ fontSize: 16, color: 'var(--t3)', lineHeight: 1.7, marginBottom: 32, fontWeight: 500 }}>
-          Hemos recibido tu información correctamente.<br />
-          Un agente de <strong style={{ color: 'var(--accent)' }}>GENSY Inmobiliario</strong> se pondrá en contacto contigo pronto.
+          {t('success_desc1')}<br />
+          {t('success_desc2')}<strong style={{ color: 'var(--accent)' }}>{t('brand_name')}</strong>{t('success_desc3')}
         </p>
 
         <div style={{
@@ -108,7 +125,7 @@ export default function FormSuccess() {
           borderRadius: 14, padding: '16px 20px', marginBottom: 36,
         }}>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#10b981', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18 }}>✅</span> Tu solicitud fue guardada exitosamente
+            <span style={{ fontSize: 18 }}>✅</span> {t('success_saved')}
           </p>
         </div>
 
@@ -128,8 +145,26 @@ export default function FormSuccess() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               }}
             >
-              <ClipboardList size={20} /> Ver Formulario Completado
+              <ClipboardList size={20} /> {t('view_form_data')}
             </motion.button>
+          )}
+
+          {/* Edit Button */}
+          {f && f.id && (
+            <Link to="/form" state={{ editDato: f }} style={{ textDecoration: 'none' }}>
+              <motion.button
+                whileHover={{ scale: 1.02, background: '#e0e7ff' }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  width: '100%', padding: '16px 24px', borderRadius: 14, cursor: 'pointer',
+                  background: '#f1f5f9', border: 'none',
+                  color: 'var(--accent)', fontFamily: 'inherit', fontSize: 16, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                }}
+              >
+                <Edit2 size={20} /> {language === 'es' ? 'Editar Información' : 'Edit Information'}
+              </motion.button>
+            </Link>
           )}
 
           {/* Back to home */}
@@ -143,10 +178,13 @@ export default function FormSuccess() {
                 color: 'var(--t2)', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
               }}
             >
-              🏠 Volver a la Página Principal
+              🏠 {t('back_to_home')}
             </motion.button>
           </Link>
         </div>
+        <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 32, fontWeight: 700 }}>
+          {t('developed_by_text')}
+        </p>
       </motion.div>
 
       {/* ── Data modal ─────────────────────────────── */}
@@ -194,7 +232,7 @@ export default function FormSuccess() {
                 <div style={{ flex: 1 }}>
                   <div style={{ color: 'var(--t1)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>{f?.nombreCompleto}</div>
                   <div style={{ color: 'var(--t3)', fontSize: 12, marginTop: 2, fontWeight: 500 }}>
-                    Formulario de Pre-Calificación
+                    {t('modal_form_title')}
                   </div>
                 </div>
                 <button onClick={() => setShowData(false)} style={{
@@ -232,7 +270,7 @@ export default function FormSuccess() {
                   color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 800,
                   cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
                 }}>
-                  Cerrar
+                  {t('close')}
                 </button>
               </div>
             </motion.div>

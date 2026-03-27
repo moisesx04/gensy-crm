@@ -7,14 +7,19 @@ import ConfiguracionView from './views/ConfiguracionView';
 import FormView from './views/FormView';
 import FormSuccess from './views/FormSuccess';
 import LoginView from './views/LoginView';
+import ChatBotView from './views/ChatBotView';
 import ProtectedRoute from './components/ProtectedRoute';
+import IOSInstallPrompt from './components/IOSInstallPrompt';
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <IOSInstallPrompt />
+      <Routes>
       <Route path="/login" element={<LoginView />} />
       <Route path="/form" element={<FormView />} />
       <Route path="/form/gracias" element={<FormSuccess />} />
+      <Route path="/chat" element={<ChatBotView />} />
       
       {/* Administrador - Protegido */}
       <Route path="/*" element={
@@ -34,6 +39,7 @@ export default function App() {
 
       {/* Redirigir cualquier otra ruta no encontrada a login o form */}
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
