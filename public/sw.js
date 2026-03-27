@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gensy-pwa-v6'; // Update to v6 to bust cache
+const CACHE_NAME = 'gensy-pwa-v7'; // Update to v7 to bust cache
 const assets = [
   '/',
   '/index.html',
