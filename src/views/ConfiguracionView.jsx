@@ -63,6 +63,13 @@ export default function ConfiguracionView() {
         alert('Este navegador no soporta notificaciones push nativas.');
         return;
       }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('Debes conceder permisos de notificación en tu navegador para continuar.');
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       
       const PUBLIC_VAPID_KEY = 'BIfYRWry-iCfBDkDnzZAxT2cSYr2K5EAzO9O_5-Y8ZMIjcAg2WyLiWSMYwrB07ma-9xI0hN1iBgLjTZPvd-gs9s';
@@ -93,7 +100,11 @@ export default function ConfiguracionView() {
         throw new Error("No se pudo vincular la suscripción al servidor.");
       }
     } catch(e) {
-      alert("Error al activar notificaciones: " + e.message);
+      if (e.message.toLowerCase().includes('push service error') || e.message.toLowerCase().includes('registration failed')) {
+        alert('Error: Tu navegador (ej. Brave o Modo Incógnito) está bloqueando el servicio Push. \n\nSi usas Brave: Ve a Configuración > Privacidad y Seguridad, y activa "Usar los servicios de Google para mensajería push". \n\nTe recomendamos probarlo desde Chrome, Safari, o directamente instalando la App en tu Celular Android/iOS.');
+      } else {
+        alert("Error al activar notificaciones: " + e.message);
+      }
     }
   };
 
