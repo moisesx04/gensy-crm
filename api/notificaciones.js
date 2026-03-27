@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
+import { verifyAuthToken } from './_lib/auth.js';
 
 const sql = neon(process.env.POSTGRES_URL, { fullResults: true });
 
@@ -7,23 +8,9 @@ export default async function handler(req, res) {
   if (!process.env.POSTGRES_URL) {
     return res.status(500).json({ error: 'Configuración del servidor incompleta.' });
   }
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({ error: 'Configuración de seguridad del servidor incompleta.' });
-  }
-
+  const authUser = verifyAuthToken(req, res);
+  if (!authUser) return;
   const { method } = req;
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No autorizado' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  try {
-    jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(403).json({ error: 'Token inválido o expirado.' });
-  }
 
   try {
     if (method === 'GET') {

@@ -1,5 +1,15 @@
 import * as React from 'react';
 import { StrictMode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 30000,
+    },
+  },
+});
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { SearchProvider } from './context/SearchContext';
@@ -32,15 +42,17 @@ class ErrorBoundary extends React.Component {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <LanguageProvider>
-        <NotificationProvider>
-          <SearchProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </SearchProvider>
-        </NotificationProvider>
-      </LanguageProvider>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <NotificationProvider>
+            <SearchProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </SearchProvider>
+          </NotificationProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   </StrictMode>
 );

@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Download, FileText, Filter, Calendar, Users, ChevronRight, UserPlus, Trash2, FileSpreadsheet, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { subscribeClientes, deleteCliente } from '../lib/api';
+import { getClientes, deleteCliente } from '../lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -12,9 +13,16 @@ import { useLanguage } from '../context/LanguageContext';
 const AVATAR_COLORS = ['#2563eb', '#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#06b6d4', '#f97316', '#22c55e'];
 
 export default function ClientesView() {
-  const [clientes, setClientes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const setClientes = (updater) => queryClient.setQueryData(['clientes'], updater);
+
+  const { data: clientes = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['clientes'],
+    queryFn: getClientes,
+    refetchInterval: 30000,
+  });
+  const error = queryError ? queryError.message : null;
+
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [startDate, setStartDate] = useState('');
@@ -22,20 +30,7 @@ export default function ClientesView() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  
   const isDev = localStorage.getItem('dev_mode') === 'true';
-
-  useEffect(() => {
-    return subscribeClientes(data => {
-      setClientes(data);
-      setLoading(false);
-      setError(null);
-    }, err => {
-      console.error('Error fetching clients:', err);
-      setError(err.message);
-      setLoading(false);
-    });
-  }, []);
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`${t('cli_del_confirm')} "${name}"?`)) return;

@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { verifyAuthToken } from './_lib/auth.js';
 
 const sql = neon(process.env.POSTGRES_URL, { fullResults: true });
 
@@ -8,24 +9,10 @@ export default async function handler(req, res) {
   if (!process.env.POSTGRES_URL) {
     return res.status(500).json({ error: 'Configuración del servidor incompleta.' });
   }
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({ error: 'Configuración de seguridad del servidor incompleta.' });
-  }
+  const decoded = verifyAuthToken(req, res);
+  if (!decoded) return;
 
   const { method } = req;
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No autorizado. Falta token.' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(403).json({ error: 'Token inválido o expirado.' });
-  }
 
   // El ID del usuario viene del token decodificado
   const userId = decoded.id;
