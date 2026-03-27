@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { subscribeClientes, deleteCliente } from '../lib/api';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import ClienteModal from '../components/ClienteModal';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -110,7 +110,7 @@ export default function ClientesView() {
     doc.setFontSize(9); doc.setTextColor(100, 116, 139);
     doc.text(`${t('cli_total_sel')}: ${filtered.length}`, 14, 21);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 26,
       head: [['ID', t('cli_th_client'), t('cli_th_phone'), 'Pers/Hab', t('cli_th_income'), t('dash_no_company'), t('cli_th_bank'), t('cli_th_taxes'), 'Credit', t('cli_th_date')]],
       body: filtered.map(c => [

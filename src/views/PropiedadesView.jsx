@@ -4,6 +4,7 @@ import { MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, C
 import { getProperties, addProperty, updateProperty, subscribeTo, subscribeClientes, deleteProperty } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
+import * as XLSX from 'xlsx';
 
 export default function PropiedadesView() {
   const { t } = useLanguage();
@@ -18,7 +19,7 @@ export default function PropiedadesView() {
   const [rentingTime, setRentingTime] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [costPrice, setCostPrice] = useState('');
-  const [salePrice, setCostPrice2] = useState(''); // Just keeping the existing names
+  const [salePrice, setSalePrice] = useState('');
   const [commissions, setCommissions] = useState([]); // [{ name: '', amount: '' }]
   const { searchQuery } = useSearch();
 
@@ -213,6 +214,29 @@ export default function PropiedadesView() {
     { key: 'Alquiler', label: t('prop_filter_rent'), count: properties.filter(p => p.tag === 'Alquiler').length },
   ];
 
+  const exportExcel = () => {
+    const rows = properties.map(p => ({
+      'ID': p.id,
+      'Título': p.title,
+      'Ubicación': p.location || '—',
+      'Precio Publicado': p.price,
+      'Habitaciones': p.beds,
+      'Baños': p.baths,
+      'Tipo': p.tag,
+      'Estado': p.status || 'Disponible',
+      'Cliente Asignado': p.cliente_nombre || '—',
+      'Precio Venta Real': p.financiero?.salePrice || '—',
+      'Costo Base': p.financiero?.costPrice || '—',
+      'Comisiones Descontadas': p.financiero?.commissions?.reduce((s,c)=>s+(Number(c.amount)||0), 0) || 0,
+      'Ganancia Neta': (Number(p.financiero?.salePrice) || 0) - (Number(p.financiero?.costPrice) || 0) - (p.financiero?.commissions?.reduce((s,c)=>s+(Number(c.amount)||0), 0) || 0),
+      'Fecha Cita': p.fecha_cita ? new Date(p.fecha_cita).toLocaleString() : '—'
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Propiedades');
+    XLSX.writeFile(wb, `Mis_Propiedades_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   return (
     <div className="page" style={{ animation: 'pageIn .4s ease-out' }}>
       {/* ── Header ── */}
@@ -221,9 +245,14 @@ export default function PropiedadesView() {
           <h1>{t('prop_title')}</h1>
           <p>{t('prop_desc')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
-          <Plus size={18} /> {t('prop_new')}
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-primary" style={{ background: '#10b981', boxShadow: '0 8px 16px -4px rgba(16, 185, 129, 0.3)' }} onClick={exportExcel}>
+            <FileText size={15} /> Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
+            <Plus size={18} /> {t('prop_new')}
+          </button>
+        </div>
       </div>
 
       {/* ── Stats Bar ── */}

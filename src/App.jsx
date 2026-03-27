@@ -10,6 +10,7 @@ import LoginView from './views/LoginView';
 import ChatBotView from './views/ChatBotView';
 import ProtectedRoute from './components/ProtectedRoute';
 import IOSInstallPrompt from './components/IOSInstallPrompt';
+import ReportesView from './views/ReportesView';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
               <Route index element={<DashboardView />} />
               <Route path="clientes" element={<ClientesView />} />
               <Route path="propiedades" element={<PropiedadesView />} />
+              <Route path="reportes" element={<ReportesView />} />
               <Route path="configuracion" element={<ConfiguracionView />} />
               {/* Redirigir cualquier sub-ruta no encontrada dentro del layout al dashboard */}
               <Route path="*" element={<Navigate to="/" replace />} />

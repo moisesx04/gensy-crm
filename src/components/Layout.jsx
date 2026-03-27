@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe } from 'lucide-react';
+import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe, FileSpreadsheet } from 'lucide-react';
 import { subscribeClientes, logout, getNotifications, deleteNotification, subscribeTo } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,6 +10,7 @@ const NAV = [
   { to: '/', label: 'nav_dashboard', icon: LayoutDashboard, end: true },
   { to: '/clientes', label: 'nav_clientes', icon: Users },
   { to: '/propiedades', label: 'nav_propiedades', icon: Home },
+  { to: '/reportes', label: 'Reportes', icon: FileSpreadsheet },
 ];
 
 export default function Layout({ children }) {
