@@ -13,6 +13,7 @@ export default function PropiedadesView() {
   const [filter, setFilter] = useState('Todos');
   const [showAdd, setShowAdd] = useState(false);
   const [rentingProp, setRentingProp] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [rentingDate, setRentingDate] = useState('');
   const [rentingTime, setRentingTime] = useState('');
   const [clientSearch, setClientSearch] = useState('');
@@ -93,7 +94,8 @@ export default function PropiedadesView() {
     setShowAdd(true);
   };
 
-  const handleAssign = async (cliente) => {
+  const handleAssign = async () => {
+    if (!selectedClient) return;
     if (!rentingDate || !rentingTime) {
       alert(t('prop_alert_datetime'));
       return;
@@ -103,11 +105,12 @@ export default function PropiedadesView() {
       await updateProperty({
         id: rentingProp.id,
         status: 'Rentada',
-        cliente_id: cliente.id,
+        cliente_id: selectedClient.id,
         fecha_cita
       });
-      alert(`${t('prop_alert_success')} ${cliente.nombreCompleto}. ${t('prop_appointment')} ${rentingDate} ${rentingTime}`);
+      alert(`${t('prop_alert_success')} ${selectedClient.nombreCompleto}. ${t('prop_appointment')} ${rentingDate} ${rentingTime}`);
       setRentingProp(null);
+      setSelectedClient(null);
       setRentingDate('');
       setRentingTime('');
     } catch (err) { alert(err.message); }
@@ -331,78 +334,168 @@ export default function PropiedadesView() {
       {/* ── Modal: Assign Client ── */}
       <AnimatePresence>
         {rentingProp && (
-          <div className="modal-backdrop" onClick={() => setRentingProp(null)}>
+          <div className="modal-backdrop" onClick={() => { setRentingProp(null); setSelectedClient(null); }}>
             <motion.div className="modal-box" onClick={e => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              style={{ maxWidth: 680, padding: 0 }}
+              style={{ maxWidth: 720, padding: 0 }}
             >
-              <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><UserPlus size={20} /></div>
-                <div style={{ marginLeft: 14, flex: 1 }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>{t('prop_modal_assign')}</h2>
-                  <p style={{ fontSize: 12, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.title}</p>
+              <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)', padding: '20px 24px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)' }}>
+                  <UserPlus size={20} />
                 </div>
-                <button style={{ background: '#f1f5f9', border: 'none', width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontSize: 16, color: 'var(--t2)' }}
-                  onClick={() => { setRentingProp(null); setClientSearch(''); }}>✕</button>
+                <div style={{ marginLeft: 14, flex: 1 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)', margin: 0 }}>{t('prop_modal_assign')}</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Propiedad:</span>
+                    <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>{rentingProp.title}</span>
+                  </div>
+                </div>
+                <button style={{ background: '#f1f5f9', border: 'none', width: 32, height: 32, borderRadius: 8, cursor: 'pointer', fontSize: 16, color: 'var(--t2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onClick={() => { setRentingProp(null); setSelectedClient(null); setClientSearch(''); }}>✕</button>
               </div>
-              <div className="modal-scr" style={{ minHeight: 300 }}>
-                <div className="modal-body-grid" style={{ padding: 20 }}>
-                  <div className="modal-section-left">
-                    <h3 style={{ fontSize: 12, fontWeight: 800, marginBottom: 12, color: 'var(--t1)', borderLeft: '3px solid var(--accent)', paddingLeft: 8 }}>{t('prop_step1')}</h3>
-                    <div className="search-wrap" style={{ marginBottom: 14, background: '#f8fafc', padding: '8px 12px' }}>
-                      <Search size={13} color="var(--t3)" />
-                      <input placeholder={t('prop_search_client')} value={clientSearch} onChange={e => setClientSearch(e.target.value)} style={{ fontSize: 13 }} />
-                    </div>
-                    <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid var(--card-border)', borderRadius: 12, background: '#fff', padding: 4 }}>
-                      {loading ? (
-                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_loading_clients')}</div>
-                      ) : clientes.length === 0 ? (
-                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_no_clients')}</div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          {clientes
-                            .filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase()))
-                            .map((c, idx, arr) => (
-                              <div key={c.id || idx} style={{ padding: '11px 12px', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                                  <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
-                                    {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
-                                  </div>
-                                  <div style={{ minWidth: 0 }}>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombreCompleto || 'Sin nombre'}</div>
-                                    <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>{c.telefono || 'Sin teléfono'}</div>
-                                  </div>
-                                </div>
-                                <button className="btn" style={{ padding: '6px 14px', fontSize: 11, height: 'auto', background: 'var(--accent-light)', color: 'var(--accent)', border: 'none', fontWeight: 700 }}
-                                  onClick={() => handleAssign(c)}>
-                                  {t('prop_btn_assign')}
-                                </button>
-                              </div>
-                            ))}
-                          {clientes.filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
-                            <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>{t('prop_no_results')} "{clientSearch}"</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="modal-section-right">
-                    <h3 style={{ fontSize: 12, fontWeight: 800, marginBottom: 14, color: 'var(--t1)', borderLeft: '3px solid var(--accent)', paddingLeft: 8 }}>{t('prop_step2')}</h3>
-                    <div className="fg" style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 11, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={12} /> {t('prop_date')}</label>
-                      <input type="date" required value={rentingDate} onChange={e => setRentingDate(e.target.value)} style={{ padding: '10px', fontSize: 13 }} />
+              <div className="modal-scr" style={{ minHeight: 400 }}>
+                {/* Stepper Header */}
+                <div style={{ display: 'flex', padding: '16px 24px', background: '#f8fafc', borderBottom: '1px solid var(--card-border)', gap: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: selectedClient ? 0.5 : 1 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: selectedClient ? 'var(--success)' : 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800 }}>
+                      {selectedClient ? '✓' : '1'}
                     </div>
-                    <div className="fg" style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 11, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={12} /> {t('prop_time')}</label>
-                      <input type="time" required value={rentingTime} onChange={e => setRentingTime(e.target.value)} style={{ padding: '10px', fontSize: 13 }} />
-                    </div>
-                    <div style={{ marginTop: 20, padding: 12, background: 'var(--accent-light)', borderRadius: 12, border: '1px dashed var(--accent)', opacity: 0.85 }}>
-                      <p style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600, lineHeight: 1.5 }}>
-                        {t('prop_alert_rented')} <b>{t('prop_rented')}</b>. {t('prop_alert_rented2')}
-                      </p>
-                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Seleccionar Cliente</span>
                   </div>
+                  <div style={{ flex: 1, height: 1.5, background: 'var(--card-border)', alignSelf: 'center' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: selectedClient ? 1 : 0.4 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800 }}>
+                      2
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Programar Cita</span>
+                  </div>
+                </div>
+
+                <div className="modal-body-grid" style={{ padding: 0, gridTemplateColumns: '1fr' }}>
+                  {!selectedClient ? (
+                    <div style={{ padding: 24 }}>
+                      <div className="search-wrap" style={{ marginBottom: 20, background: '#fff', padding: '12px 16px', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                        <Search size={16} color="var(--t3)" />
+                        <input 
+                          placeholder="Buscar cliente por nombre o teléfono..." 
+                          value={clientSearch} 
+                          onChange={e => setClientSearch(e.target.value)} 
+                          style={{ fontSize: 14, fontWeight: 500 }} 
+                        />
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12, maxHeight: 380, overflowY: 'auto', padding: '2px' }}>
+                        {loading ? (
+                          <div style={{ gridColumn: '1/-1', padding: 60, textAlign: 'center', color: 'var(--t3)' }}>Cargando clientes...</div>
+                        ) : clientes.filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase())).length === 0 ? (
+                          <div style={{ gridColumn: '1/-1', padding: 60, textAlign: 'center', color: 'var(--t3)' }}>No se encontraron clientes.</div>
+                        ) : (
+                          clientes
+                            .filter(c => (c.nombreCompleto || '').toLowerCase().includes(clientSearch.toLowerCase()))
+                            .map((c) => (
+                              <motion.div 
+                                key={c.id} 
+                                whileHover={{ scale: 1.02, y: -2 }}
+                                onClick={() => setSelectedClient(c)}
+                                style={{ 
+                                  padding: '14px', 
+                                  borderRadius: 14, 
+                                  border: '1.5px solid var(--card-border)', 
+                                  background: '#fff',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  transition: 'border-color 0.2s, box-shadow 0.2s'
+                                }}
+                                className="client-assign-item"
+                              >
+                                <div style={{ 
+                                  width: 40, height: 40, borderRadius: 12, 
+                                  background: 'linear-gradient(135deg, var(--accent-light), #c7d2fe)', 
+                                  color: 'var(--accent)', display: 'flex', alignItems: 'center', 
+                                  justifyContent: 'center', fontSize: 15, fontWeight: 800 
+                                }}>
+                                  {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
+                                </div>
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombreCompleto}</div>
+                                  <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{c.telefono || 'Sin teléfono'}</div>
+                                </div>
+                              </motion.div>
+                            ))
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <motion.div 
+                      initial={{ opacity: 0, x: 20 }} 
+                      animate={{ opacity: 1, x: 0 }}
+                      style={{ padding: 32 }}
+                    >
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+                        <div>
+                          <div style={{ marginBottom: 24 }}>
+                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 12 }}>Cliente Seleccionado</h4>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--accent-light)', borderRadius: 14, border: '1px solid var(--accent)' }}>
+                              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>
+                                {selectedClient.nombreCompleto.charAt(0).toUpperCase()}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent)' }}>{selectedClient.nombreCompleto}</div>
+                                <div style={{ fontSize: 12, color: 'var(--t2)', fontWeight: 600 }}>{selectedClient.telefono}</div>
+                              </div>
+                              <button 
+                                onClick={() => setSelectedClient(null)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontWeight: 700, fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}
+                              >Cambiar</button>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div className="fg">
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Fecha de la Cita</label>
+                              <input type="date" required value={rentingDate} onChange={e => setRentingDate(e.target.value)} />
+                            </div>
+                            <div className="fg">
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={14} /> Hora de la Cita</label>
+                              <input type="time" required value={rentingTime} onChange={e => setRentingTime(e.target.value)} />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ background: '#f8fafc', borderRadius: 20, padding: 24, border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column' }}>
+                          <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 16 }}>Resumen de Renta</h4>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fff', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                                <Home size={24} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>{rentingProp.title}</div>
+                                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.location}</div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+                              <span style={{ color: 'var(--t2)', fontWeight: 500 }}>Precio pactado:</span>
+                              <span style={{ color: 'var(--t1)', fontWeight: 800 }}>{rentingProp.price}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                              <span style={{ color: 'var(--t2)', fontWeight: 500 }}>Operación:</span>
+                              <span style={{ color: 'var(--info)', fontWeight: 800 }}>Alquiler</span>
+                            </div>
+                          </div>
+                          
+                          <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px dashed var(--card-border)' }}>
+                             <button className="btn btn-primary" onClick={handleAssign} style={{ width: '100%', padding: '14px', justifyContent: 'center', fontSize: 15, boxShadow: '0 8px 16px -4px rgba(79, 70, 229, 0.2)' }}>
+                              <CheckCircle2 size={18} /> Confirmar Renta
+                             </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -593,6 +686,7 @@ export default function PropiedadesView() {
         @media (max-width: 480px) {
           .prop-stats-bar { grid-template-columns: 1fr; }
         }
+        .client-assign-item:hover { border-color: var(--accent) !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1) !important; }
       `}</style>
     </div>
   );
