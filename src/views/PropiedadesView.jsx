@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, Calendar, Users, Search, Edit2, TrendingUp, Tag, FileText, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Map, MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, Calendar, Users, Search, Edit2, TrendingUp, Tag, FileText, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { getProperties, addProperty, updateProperty, subscribeTo, subscribeClientes, deleteProperty } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -21,6 +21,7 @@ export default function PropiedadesView() {
   const [costPrice, setCostPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [commissions, setCommissions] = useState([]); // [{ name: '', amount: '' }]
+  const [mapViews, setMapViews] = useState({});
   const { searchQuery } = useSearch();
 
   useEffect(() => {
@@ -320,31 +321,78 @@ export default function PropiedadesView() {
                 overflow: 'hidden'
               }}>
                 {/* Decorative blobs */}
-                <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', filter: 'blur(12px)' }} />
-                <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)' }} />
+                <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', filter: 'blur(12px)', pointerEvents: 'none', zIndex: 1 }} />
+                <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)', pointerEvents: 'none', zIndex: 1 }} />
 
-                {/* Center / Full image */}
-                {p.image_urls?.length > 0 || p.image_url ? (
-                  <>
-                    <img src={p.image_urls?.length > 0 ? p.image_urls[0] : p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 60%, rgba(0,0,0,0.1) 100%)' }} />
-                    {p.image_urls?.length > 1 && (
-                      <div style={{ position: 'absolute', bottom: 12, right: 12, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 12 }}>
-                        + {p.image_urls.length - 1} fotos
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div style={{
-                    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                    width: 68, height: 68, borderRadius: 22, background: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 12px 28px -6px rgba(0,0,0,0.12)',
-                    color: cardAccent(p), zIndex: 5
-                  }}>
-                    {p.status === 'Rentada' ? <CheckCircle2 size={34} /> : <Home size={34} strokeWidth={1.5} />}
-                  </div>
-                )}
+                {/* Center / Full image or Map */}
+                <AnimatePresence mode="wait">
+                  {mapViews[p.id] ? (
+                    <motion.div
+                      key="map"
+                      initial={{ opacity: 0, rotateY: 90 }}
+                      animate={{ opacity: 1, rotateY: 0 }}
+                      exit={{ opacity: 0, rotateY: -90 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, zIndex: 5 }}
+                    >
+                      <iframe 
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(p.location || p.title)}&t=&z=15&ie=UTF8&iwloc=&output=embed`} 
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 0 }} 
+                        loading="lazy"
+                        title={`Mapa de ${p.title}`}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="img"
+                      initial={{ opacity: 0, rotateY: -90 }}
+                      animate={{ opacity: 1, rotateY: 0 }}
+                      exit={{ opacity: 0, rotateY: 90 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
+                    >
+                      {p.image_urls?.length > 0 || p.image_url ? (
+                        <>
+                          <img src={p.image_urls?.length > 0 ? p.image_urls[0] : p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 60%, rgba(0,0,0,0.1) 100%)' }} />
+                          {p.image_urls?.length > 1 && (
+                            <div style={{ position: 'absolute', bottom: 12, left: 12, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 12 }}>
+                              + {p.image_urls.length - 1} fotos
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{
+                          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                          width: 68, height: 68, borderRadius: 22, background: '#fff',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 12px 28px -6px rgba(0,0,0,0.12)',
+                          color: cardAccent(p), zIndex: 5
+                        }}>
+                          {p.status === 'Rentada' ? <CheckCircle2 size={34} /> : <Home size={34} strokeWidth={1.5} />}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Map Toggle Button */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setMapViews(prev => ({ ...prev, [p.id]: !prev[p.id] })); }}
+                  style={{
+                    position: 'absolute', top: 12, left: 12, width: 34, height: 34, borderRadius: '50%',
+                    background: mapViews[p.id] ? 'var(--accent)' : 'rgba(255,255,255,0.9)',
+                    color: mapViews[p.id] ? '#fff' : 'var(--t2)',
+                    border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+                    transition: 'all 0.2s', backdropFilter: 'blur(4px)'
+                  }}
+                >
+                  {mapViews[p.id] ? <ImageIcon size={16} /> : <Map size={16} />}
+                </button>
 
                 {/* Top-right: tag + actions */}
                 <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center', zIndex: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>

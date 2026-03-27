@@ -72,6 +72,17 @@ export default async function handler(req, res) {
       );
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        endpoint TEXT PRIMARY KEY,
+        keys JSONB NOT NULL,
+        p256dh TEXT,
+        auth TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     // Migración manual para bases de datos existentes
     try {
       await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;

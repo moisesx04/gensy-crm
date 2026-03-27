@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Shield, Bell, Database, Save, LogOut, User, Mail, Lock } from 'lucide-react';
+import { Settings, Shield, Bell, Database, Save, LogOut, User, Mail, Lock, BellRing } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { logout, updateUserProfile } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +54,46 @@ export default function ConfiguracionView() {
   const handleLogout = () => {
     if (window.confirm(t('conf_logout_confirm'))) {
       logout();
+    }
+  };
+
+  const subscribeToPush = async () => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Este navegador no soporta notificaciones push nativas.');
+        return;
+      }
+      const registration = await navigator.serviceWorker.ready;
+      
+      const PUBLIC_VAPID_KEY = 'BIfYRWry-iCfBDkDnzZAxT2cSYr2K5EAzO9O_5-Y8ZMIjcAg2WyLiWSMYwrB07ma-9xI0hN1iBgLjTZPvd-gs9s';
+      
+      const urlBase64ToUint8Array = (base64String) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+        return outputArray;
+      };
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+      });
+
+      const token = localStorage.getItem('gensy_token');
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(subscription)
+      });
+      if(response.ok) {
+        alert("¡Notificaciones activadas con éxito! Ahora recibirás avisos nativos en este dispositivo.");
+      } else {
+        throw new Error("No se pudo vincular la suscripción al servidor.");
+      }
+    } catch(e) {
+      alert("Error al activar notificaciones: " + e.message);
     }
   };
 
@@ -146,6 +186,23 @@ export default function ConfiguracionView() {
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
               {t('conf_db_status')}
             </div>
+          </div>
+        </div>
+
+        {/* Notificaciones Push (Nativas) */}
+        <div className="card" style={{ border: '2px solid rgba(16, 185, 129, 0.4)' }}>
+          <div className="card-head" style={{ background: '#ecfdf5', borderBottom: '1px solid rgba(16, 185, 129, 0.2)' }}>
+            <h3 style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <BellRing size={16} /> Notificaciones Celular
+            </h3>
+          </div>
+          <div style={{ padding: 24 }}>
+            <p style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 20 }}>
+              Si activas esta opción, comenzarás a recibir <strong>alertas y avisos push reales en este dispositivo</strong>, incluso cuando la aplicación del CRM esté cerrada o en segundo plano.
+            </p>
+            <button className="btn btn-primary" style={{ width: '100%', background: '#10b981', height: 48, borderRadius: 12, fontWeight: 800 }} onClick={subscribeToPush}>
+              Permitir Alertas de Celular
+            </button>
           </div>
         </div>
 

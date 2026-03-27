@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gensy-pwa-v5'; // Update to v5 to bust cache
+const CACHE_NAME = 'gensy-pwa-v6'; // Update to v6 to bust cache
 const assets = [
   '/',
   '/index.html',
@@ -34,3 +34,46 @@ self.addEventListener('activate', (event) => {
     }).then(() => self.clients.claim()) // claim clients immediately
   );
 });
+
+// Push API Events
+self.addEventListener('push', function(event) {
+  let data = { title: 'Nueva Notificación', body: 'Tienes un nuevo aviso en el sistema.' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch(e) {
+      data.body = event.data.text();
+    }
+  }
+  
+  const options = {
+    body: data.body,
+    icon: data.icon || '/logo192.png',
+    badge: '/logo192.png',
+    data: data.url || '/',
+    vibrate: [100, 50, 100],
+    requireInteraction: true // keeps the notification visible on mobile until interacted with
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(windowClients => {
+      for (var i = 0; i < windowClients.length; i++) {
+        var client = windowClients[i];
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(event.notification.data || '/');
+      }
+    })
+  );
+});
+
