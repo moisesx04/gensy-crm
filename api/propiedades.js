@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         // Assignment update
         const { rows } = await sql`
           UPDATE propiedades 
-          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}, financiero = ${financiero}
+          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}, financiero = ${financiero ? JSON.stringify(financiero) : null}
           WHERE id = ${id}
           RETURNING *;
         `;
