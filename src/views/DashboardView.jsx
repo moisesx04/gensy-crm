@@ -109,29 +109,6 @@ export default function DashboardView() {
     return { total, hoy, profitDaily, profitMonthly, availableProps, activeRents };
   }, [clientes, processedProperties]);
 
-  if (loading) {
-    return (
-      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
-        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <p style={{ color: 'var(--t3)', fontWeight: 600 }}>Cargando Panel Inteligente...</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', textAlign: 'center', padding: 20 }}>
-        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-          <AlertCircle size={30} />
-        </div>
-        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Vaya, algo salió mal</h2>
-        <p style={{ color: 'var(--t2)', maxWidth: 400, marginBottom: 24 }}>{error}</p>
-        <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
-      </div>
-    );
-  }
-
   const insights = useMemo(() => {
     if (!clientes || clientes.length === 0) return null;
     const withBank = clientes.filter(c => c.cuentaBanco === 'Sí').length;
@@ -157,6 +134,29 @@ export default function DashboardView() {
     setter(true);
     setTimeout(() => setter(false), 2000);
   }, []);
+
+  if (loading) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
+        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p style={{ color: 'var(--t3)', fontWeight: 600 }}>Cargando Panel Inteligente...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', textAlign: 'center', padding: 20 }}>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          <AlertCircle size={30} />
+        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Vaya, algo salió mal</h2>
+        <p style={{ color: 'var(--t2)', maxWidth: 400, marginBottom: 24 }}>{error}</p>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
+  }
 
   return (
     <div className="page" style={{ maxWidth: 1400, margin: '0 auto' }}>
