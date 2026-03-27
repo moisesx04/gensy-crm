@@ -130,8 +130,8 @@ export default function Layout({ children }) {
             </div>
             <LogOut size={16} style={{ color: 'var(--t3)' }} />
           </motion.div>
-          <div style={{ padding: '12px 16px', fontSize: 10, color: 'var(--t3)', textAlign: 'center', opacity: 0.7 }}>
-            {t('developed_by_text')}
+          <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--t3)', textAlign: 'center', opacity: 0.6, fontWeight: 700, letterSpacing: '0.02em' }}>
+            Powered by Moises Cuevas
           </div>
         </div>
       </motion.aside>

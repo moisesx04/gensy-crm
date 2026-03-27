@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { subscribeClientes, subscribeTo, getProperties } from '../lib/api';
-import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart, Home } from 'lucide-react';
+import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart, Home, Sparkles, Zap, Info } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const container = {
@@ -97,6 +97,18 @@ export default function DashboardView() {
 
     return { total, hoy, profitDaily, profitMonthly, availableProps, activeRents };
   }, [clientes, properties]);
+  
+  const insights = useMemo(() => {
+    if (clientes.length === 0) return null;
+    const withBank = clientes.filter(c => c.cuentaBanco === 'Sí').length;
+    const withProgram = clientes.filter(c => c.cashOPrograma === 'Programas de asistencia' || c.cashOPrograma === 'Ambos (Cash + Programa)').length;
+    const highIncome = clientes.filter(c => Number(c.ingresosMensuales) > 5000).length;
+    return {
+      bankPct: Math.round((withBank / clientes.length) * 100),
+      programPct: Math.round((withProgram / clientes.length) * 100),
+      potentials: highIncome
+    };
+  }, [clientes]);
 
   const formLink = `${window.location.origin}/form`;
   const chatLink = `${window.location.origin}/chat`;
@@ -116,10 +128,12 @@ export default function DashboardView() {
         style={{ marginBottom: 40 }}
       >
         <div>
-          <h1 style={{ fontSize: 34, background: 'linear-gradient(135deg, var(--t1), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h1 style={{ fontSize: 36, background: 'linear-gradient(135deg, var(--t1), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, letterSpacing: '-0.03em' }}>
             {t('dash_title')}
           </h1>
-          <p style={{ fontSize: 16 }}>Bienvenido de nuevo al panel interactivo de G A FRIAS REAL ESTATE.</p>
+          <p style={{ fontSize: 16, color: 'var(--t2)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Zap size={16} color="var(--accent)" /> Panel Inteligente de G A FRIAS • {new Date().toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'long' })}
+          </p>
         </div>
         <div style={{ display:'flex', gap: 12 }}>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn btn-ghost" onClick={() => copy(formLink, setCopied)}>
@@ -130,6 +144,43 @@ export default function DashboardView() {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Smart Insights Banner */}
+      {insights && (
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ 
+            background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
+            borderRadius: 24, padding: '24px 32px', marginBottom: 32,
+            color: '#fff', position: 'relative', overflow: 'hidden',
+            boxShadow: '0 20px 40px -12px rgba(15, 23, 42, 0.3)'
+          }}
+        >
+          <div style={{ position: 'absolute', top: -20, right: -20, width: 150, height: 150, borderRadius: '50%', background: 'rgba(37, 99, 235, 0.15)', filter: 'blur(40px)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <div style={{ padding: 8, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex' }}>
+              <Sparkles size={18} color="#60a5fa" />
+            </div>
+            <h3 style={{ fontSize: 17, fontWeight: 800 }}>Resumen Inteligente del Negocio</h3>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Salud Bancaria</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.bankPct}% <span style={{ fontSize: 12, color: '#10b981', fontWeight: 700 }}>con cuenta</span></div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Uso de Programas</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.programPct}% <span style={{ fontSize: 12, color: '#60a5fa', fontWeight: 700 }}>asistencia</span></div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Prospectos Top</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.potentials} <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 700 }}>ingresos $5k+</span></div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Bento Layout */}
       <motion.div 
