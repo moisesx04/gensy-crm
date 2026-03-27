@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe, FileSpreadsheet } from 'lucide-react';
+import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe, FileSpreadsheet, Moon, Sun } from 'lucide-react';
 import { subscribeClientes, logout, getNotifications, deleteNotification, subscribeTo } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,7 +10,7 @@ const NAV = [
   { to: '/', label: 'nav_dashboard', icon: LayoutDashboard, end: true },
   { to: '/clientes', label: 'nav_clientes', icon: Users },
   { to: '/propiedades', label: 'nav_propiedades', icon: Home },
-  { to: '/reportes', label: 'Reportes', icon: FileSpreadsheet },
+  { to: '/reportes', label: 'nav_reportes', icon: FileSpreadsheet },
 ];
 
 export default function Layout({ children }) {
@@ -21,6 +21,7 @@ export default function Layout({ children }) {
   const [clientCount, setClientCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showNotif, setShowNotif] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('gensy_theme') || 'light');
   const { searchQuery, setSearchQuery } = useSearch();
   const navigate = useNavigate();
   
@@ -55,6 +56,12 @@ export default function Layout({ children }) {
     const unsubN = subscribeTo(getNotifications, setNotifications, 15000);
     return () => { unsubC(); unsubN(); };
   }, []);
+
+  useEffect(() => {
+    if (theme === 'dark') document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
+    localStorage.setItem('gensy_theme', theme);
+  }, [theme]);
 
   const unreadCount = notifications.filter(n => !n.leida).length;
 
@@ -115,23 +122,21 @@ export default function Layout({ children }) {
         </button>
 
         <div className="sb-footer">
-          <motion.div 
-            className="user-pill" 
-            whileHover={{ backgroundColor: '#f1f5f9' }}
+          <motion.button 
+            className="btn btn-primary" 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{ width: '100%', background: '#ef4444', border: 'none', display: 'flex', gap: 8, justifyContent: 'center' }}
             onClick={async () => {
               if (window.confirm(t('logout_confirm'))) {
                 logout();
               }
             }}
           >
-            <div className="ua">{userInitial}</div>
-            <div style={{ flex: 1 }}>
-              <p>{userName}</p>
-              <span>Admin</span>
-            </div>
-            <LogOut size={16} style={{ color: 'var(--t3)' }} />
-          </motion.div>
-          <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--t3)', textAlign: 'center', opacity: 0.6, fontWeight: 700, letterSpacing: '0.02em' }}>
+            <LogOut size={16} />
+            <span style={{ fontWeight: 700 }}>{t('conf_logout')}</span>
+          </motion.button>
+          <div style={{ padding: '16px', fontSize: 10, color: 'var(--t3)', textAlign: 'center', opacity: 0.6, fontWeight: 700, letterSpacing: '0.02em' }}>
             Powered by Moises Cuevas
           </div>
         </div>
@@ -182,6 +187,14 @@ export default function Layout({ children }) {
           )}
 
           <div className="hdr-actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <motion.button 
+              className="icon-btn" 
+              whileTap={{ scale: 0.9 }} 
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              style={{ background: theme === 'dark' ? '#1e293b' : '#f8fafc', border: '1px solid var(--card-border)' }}
+            >
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} color="#f8fafc" />}
+            </motion.button>
             <button 
               type="button"
               onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}

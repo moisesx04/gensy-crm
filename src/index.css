@@ -57,6 +57,46 @@ body {
   width: 100%;
 }
 
+body.dark {
+  --bg: #0f172a;
+  --sidebar-bg: #1e293b;
+  --card: #1e293b;
+  --card-border: #334155;
+  --t1: #f8fafc;
+  --t2: #cbd5e1;
+  --t3: #94a3b8;
+  --glass-bg: rgba(30, 41, 59, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+body.dark input, body.dark select, body.dark textarea {
+  background-color: var(--bg);
+  border-color: var(--card-border);
+  color: var(--t1);
+}
+
+body.dark .search-wrap input {
+  background-color: transparent;
+}
+
+body.dark .tbl-wrap th {
+  background-color: #0f172a;
+  border-bottom-color: #334155;
+}
+
+body.dark .tbl-wrap td {
+  border-bottom-color: #334155;
+}
+
+body.dark .nav-link:hover, body.dark .nav-link.active {
+  background-color: #0f172a;
+}
+
+body.dark .form-footer-nav {
+  background-color: #1e293b;
+  border-top-color: #334155;
+}
+
 #root { 
   display: flex; 
   min-height: 100vh;
