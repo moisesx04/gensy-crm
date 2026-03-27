@@ -22,6 +22,8 @@ export default function PropiedadesView() {
   const [salePrice, setSalePrice] = useState('');
   const [commissions, setCommissions] = useState([]); // [{ name: '', amount: '' }]
   const [mapViews, setMapViews] = useState({});
+  const [viewingProp, setViewingProp] = useState(null);
+  const [viewingImgIdx, setViewingImgIdx] = useState(0);
   const { searchQuery } = useSearch();
 
   useEffect(() => {
@@ -141,8 +143,8 @@ export default function PropiedadesView() {
     if (!files.length) return;
     
     // Check if limits exceeded
-    if ((newP.image_urls?.length || 0) + files.length > 3) {
-      alert('Solo puedes subir hasta 3 fotos para no llenar el almacenamiento.');
+    if ((newP.image_urls?.length || 0) + files.length > 5) {
+      alert('Solo puedes subir hasta 5 fotos para no llenar el almacenamiento.');
       return;
     }
 
@@ -316,12 +318,16 @@ export default function PropiedadesView() {
               }}>
 
               {/* Card Banner */}
-              <div style={{
-                height: 160,
-                background: cardGradient(p),
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
+              <div 
+                style={{
+                  height: 160,
+                  background: cardGradient(p),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  cursor: 'pointer'
+                }}
+                onClick={() => { setViewingProp(p); setViewingImgIdx(0); }}
+              >
                 {/* Decorative blobs */}
                 <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', filter: 'blur(12px)', pointerEvents: 'none', zIndex: 1 }} />
                 <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)', pointerEvents: 'none', zIndex: 1 }} />
@@ -789,6 +795,154 @@ export default function PropiedadesView() {
                       </div>
                     </motion.div>
                   )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal: Property Lightbox ── */}
+      <AnimatePresence>
+        {viewingProp && (
+          <div className="modal-backdrop" onClick={() => setViewingProp(null)} style={{ background: 'rgba(15, 23, 42, 0.85)', zIndex: 100000, padding: 0 }}>
+            <motion.div 
+              className="modal-box" 
+              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.95, y: 30 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              style={{ maxWidth: 1000, width: '100%', height: '90vh', maxHeight: 800, borderRadius: 24, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            >
+              <div style={{ display: 'flex', flex: 1, flexDirection: window.innerWidth < 768 ? 'column' : 'row', height: '100%', overflow: 'hidden' }}>
+                
+                {/* Left: Interactive Image Carousel */}
+                <div style={{ flex: window.innerWidth < 768 ? 'none' : 1.3, height: window.innerWidth < 768 ? '40vh' : '100%', background: '#0f172a', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button 
+                    style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                    onClick={() => setViewingProp(null)}
+                  >
+                    <X size={18} />
+                  </button>
+                  
+                  {/* render image */}
+                  {(viewingProp.image_urls?.length > 0 || viewingProp.image_url) ? (
+                    <motion.img 
+                      key={viewingImgIdx}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                      src={viewingProp.image_urls?.length > 0 ? viewingProp.image_urls[viewingImgIdx] : viewingProp.image_url} 
+                      alt={viewingProp.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                    />
+                  ) : (
+                    <div style={{ color: 'rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                      <Home size={64} strokeWidth={1} />
+                      <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em' }}>SIN IMAGEN</span>
+                    </div>
+                  )}
+
+                  {/* Carousel Controls */}
+                  {viewingProp.image_urls?.length > 1 && (
+                    <>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setViewingImgIdx(prev => prev > 0 ? prev - 1 : viewingProp.image_urls.length - 1); }}
+                        style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', color: '#fff', border: 'none', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <span style={{ fontSize: 20, fontWeight: 900 }}>‹</span>
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setViewingImgIdx(prev => prev < viewingProp.image_urls.length - 1 ? prev + 1 : 0); }}
+                        style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', color: '#fff', border: 'none', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <span style={{ fontSize: 20, fontWeight: 900 }}>›</span>
+                      </button>
+
+                      {/* Dots */}
+                      <div style={{ position: 'absolute', bottom: 20, display: 'flex', gap: 8, zIndex: 10 }}>
+                        {viewingProp.image_urls.map((_, i) => (
+                          <div key={i} onClick={(e) => { e.stopPropagation(); setViewingImgIdx(i); }} style={{ width: 8, height: 8, borderRadius: '50%', background: viewingImgIdx === i ? '#fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.2s', transform: viewingImgIdx === i ? 'scale(1.2)' : 'scale(1)' }} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {/* Right: Info Scroll Area */}
+                <div style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <h2 style={{ fontSize: 28, fontWeight: 900, color: 'var(--t1)', lineHeight: 1.2, margin: 0 }}>{viewingProp.title}</h2>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t3)', marginBottom: 24, fontSize: 13, fontWeight: 700 }}>
+                    <MapPin size={14} /> {viewingProp.location}
+                  </div>
+                  
+                  <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)', marginBottom: 24, letterSpacing: '-0.02em' }}>{viewingProp.price}</div>
+                  
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
+                     <span style={{ padding: '6px 14px', borderRadius: 99, fontSize: 11, fontWeight: 900, letterSpacing: '0.05em', background: viewingProp.tag === 'Venta' ? '#eff6ff' : '#f0f9ff', color: viewingProp.tag === 'Venta' ? 'var(--accent)' : 'var(--info)' }}>
+                       {viewingProp.tag}
+                     </span>
+                     <span style={{ padding: '6px 14px', borderRadius: 99, fontSize: 11, fontWeight: 900, letterSpacing: '0.05em', background: viewingProp.status === 'Rentada' ? '#ecfdf5' : viewingProp.status === 'No Disponible' ? '#fef2f2' : 'var(--accent)', color: viewingProp.status === 'Rentada' ? 'var(--success)' : viewingProp.status === 'No Disponible' ? 'var(--danger)' : '#fff' }}>
+                       {viewingProp.status === 'Rentada' ? `✓ ${t('prop_rented')}` : viewingProp.status === 'No Disponible' ? '✕ NO DISPONIBLE' : '◆ DISPONIBLE'}
+                     </span>
+                  </div>
+
+                  {viewingProp.description && (
+                    <div style={{ marginBottom: 32 }}>
+                      <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 10, fontWeight: 800 }}>Descripción</h4>
+                      <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.6, background: '#f8fafc', padding: 16, borderRadius: 16, border: '1px solid var(--card-border)' }}>{viewingProp.description}</p>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 32 }}>
+                    <div style={{ background: '#fff', padding: '16px 20px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 14, border: '1.5px solid var(--card-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent-light)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Bed size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1 }}>{viewingProp.beds}</div>
+                        <div style={{ fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', marginTop: 4 }}>Camas</div>
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', padding: '16px 20px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 14, border: '1.5px solid var(--card-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', color: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Bath size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1 }}>{viewingProp.baths}</div>
+                        <div style={{ fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', marginTop: 4 }}>Baños</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Assigned client details if RENTADA */}
+                  {viewingProp.status === 'Rentada' && (
+                    <div>
+                      <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 10, fontWeight: 800 }}>Asignación de Cliente</h4>
+                      <div style={{ padding: '16px 20px', borderRadius: 16, background: '#ecfdf5', border: '1px solid #a7f3d0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Users size={16} />
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 900, color: '#064e3b' }}>{viewingProp.cliente_nombre || t('prop_assigned_client')}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(5,150,105,0.1)', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Calendar size={16} />
+                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#047857' }}>{formatDate(viewingProp.fecha_cita)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 'auto', paddingTop: 32 }}>
+                     <button className="btn btn-ghost" onClick={() => setViewingProp(null)} style={{ justifyContent: 'center', padding: 14, borderRadius: 12 }}>Cerrar Visor</button>
+                     <button className="btn btn-primary" onClick={() => { handleEditProp(viewingProp); setViewingProp(null); }} style={{ justifyContent: 'center', padding: 14, borderRadius: 12 }}><Edit2 size={16}/> Editar Propiedad</button>
+                  </div>
                 </div>
               </div>
             </motion.div>
