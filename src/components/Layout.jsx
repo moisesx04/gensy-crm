@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Users, Home, Search, Bell, Menu, X, Settings, LogOut, Check, Calendar, Trash2, Globe, FileSpreadsheet, Moon, Sun } from 'lucide-react';
-import { subscribeClientes, logout, getNotifications, deleteNotification, subscribeTo } from '../lib/api';
+import { subscribeClientes, logout, getNotifications, subscribeTo, getProperties } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -19,8 +19,11 @@ export default function Layout({ children }) {
   const [open, setOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const [clientCount, setClientCount] = useState(0);
+  const [clientes, setClientes] = useState([]);
+  const [propiedades, setPropiedades] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showNotif, setShowNotif] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('gensy_theme') || 'light');
   const { searchQuery, setSearchQuery } = useSearch();
   const navigate = useNavigate();
@@ -52,9 +55,13 @@ export default function Layout({ children }) {
   }, []);
 
   useEffect(() => {
-    const unsubC = subscribeClientes(c => setClientCount(c.length));
+    const unsubC = subscribeClientes(c => {
+      setClientes(c);
+      setClientCount(c.length);
+    });
+    const unsubP = subscribeTo(getProperties, setPropiedades, 30000);
     const unsubN = subscribeTo(getNotifications, setNotifications, 15000);
-    return () => { unsubC(); unsubN(); };
+    return () => { unsubC(); unsubP(); unsubN(); };
   }, []);
 
   useEffect(() => {
@@ -177,16 +184,84 @@ export default function Layout({ children }) {
             </motion.button>
           )}
 
-          {location.pathname !== '/propiedades' && (
-            <div className="search-wrap hidden-mobile">
-              <Search size={16} color="var(--t3)" />
-              <input 
-                placeholder={t('search_placeholder')} 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="search-wrap hidden-mobile" style={{ position: 'relative', zIndex: 110 }}>
+            <Search size={16} color="var(--t3)" />
+            <input 
+              placeholder={t('search_placeholder') + " clientes, propiedades..."} 
+              value={searchQuery}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+                setShowGlobalSearch(true);
+              }}
+              onFocus={() => setShowGlobalSearch(true)}
+              onBlur={() => setTimeout(() => setShowGlobalSearch(false), 200)}
+            />
+
+            <AnimatePresence>
+              {showGlobalSearch && searchQuery.length > 1 && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 12,
+                    background: 'var(--card)', borderRadius: 16, border: '1px solid var(--card-border)',
+                    boxShadow: '0 20px 40px -12px rgba(0,0,0,0.15)', zIndex: 999,
+                    maxHeight: 400, overflowY: 'auto', padding: 8
+                  }}
+                >
+                  {(() => {
+                    const sq = searchQuery.toLowerCase();
+                    const cMatches = clientes.filter(c => c.nombreCompleto?.toLowerCase().includes(sq) || c.telefono?.includes(sq) || c.cedula?.includes(sq)).slice(0, 5);
+                    const pMatches = propiedades.filter(p => p.title?.toLowerCase().includes(sq) || p.location?.toLowerCase().includes(sq)).slice(0, 5);
+                    
+                    if (!cMatches.length && !pMatches.length) {
+                      return <div style={{ padding: 20, textAlign: 'center', color: 'var(--t3)', fontSize: 13, fontWeight: 600 }}>No hay resultados globales para "{searchQuery}"</div>;
+                    }
+                    
+                    return (
+                      <>
+                        {cMatches.length > 0 && (
+                          <div style={{ marginBottom: pMatches.length > 0 ? 12 : 0 }}>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', padding: '8px 12px' }}>Clientes</div>
+                            {cMatches.map(c => (
+                              <div key={c.id} onClick={() => { navigate('/clientes'); setShowGlobalSearch(false); }} className="global-search-item">
+                                 <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent-light)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Users size={14} />
+                                 </div>
+                                 <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nombreCompleto}</div>
+                                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>{c.telefono || c.cedula || 'Sin contacto'}</div>
+                                 </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {pMatches.length > 0 && (
+                          <div>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', padding: '8px 12px' }}>Propiedades</div>
+                            {pMatches.map(p => (
+                              <div key={p.id} onClick={() => { navigate('/propiedades'); setShowGlobalSearch(false); }} className="global-search-item">
+                                 <div style={{ width: 32, height: 32, borderRadius: 8, background: p.tag === 'Venta' ? '#eff6ff' : '#f0fdf4', color: p.tag === 'Venta' ? 'var(--info)' : 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Home size={14} />
+                                 </div>
+                                 <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
+                                    <div style={{ fontSize: 11, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.location} • {p.price}</div>
+                                 </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <div className="hdr-actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
             <motion.button 

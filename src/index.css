@@ -557,6 +557,23 @@ tbody tr:hover { background: #f8fafc; }
 .hidden-mobile { display: block; }
 .hidden-desktop { display: none; }
 
+.global-search-item {
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+.global-search-item:hover {
+  background: var(--bg);
+}
+body.dark .global-search-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 /* ── Responsive ─────────────────────────── */
 @media (max-width: 1024px) {
   :root { --sidebar-w: 240px; }
