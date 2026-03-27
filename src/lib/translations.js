@@ -1,8 +1,8 @@
 export const translations = {
   es: {
     // Generales
-    "brand_name": "My agenda personalizada Gensy frias",
-    "short_brand": "My agenda personalizada",
+    "brand_name": "G A FRIAS REAL ESTATE",
+    "short_brand": "G A FRIAS",
     "developed_by_text": "Desarrollado por el Sr Moises Cuevas",
     "loading": "Cargando datos...",
     "search_placeholder": "Buscar...",
@@ -24,7 +24,7 @@ export const translations = {
     "login_pass": "Contraseña",
     "login_btn": "Iniciar Sesión",
     "login_verifying": "Verificando...",
-    "login_restricted": "Acceso Restringido · Gensy frias Security",
+    "login_restricted": "Acceso Restringido · G A FRIAS Security",
     "login_error_default": "Credenciales inválidas. Verifica tu correo y contraseña.",
     
     // Layout
@@ -141,7 +141,7 @@ export const translations = {
 
     // Dashboard
     "dash_title": "Dashboard",
-    "dash_desc": "Gestión inteligente y métricas de tus prospectos My Agenda.",
+    "dash_desc": "Gestión inteligente y métricas de tus prospectos G A FRIAS.",
     "dash_copied": "Copiado",
     "dash_link": "Link",
     "dash_view_form": "Ver Formulario",
@@ -197,8 +197,8 @@ export const translations = {
     "cli_view_details": "Ver detalles",
     "cli_del_confirm": "¿Seguro que deseas eliminar a",
     "cli_del_error": "Error al eliminar:",
-    "cli_export_excel": "Reporte Completo My Agenda",
-    "cli_export_pdf": "My Agenda — Reporte de Clientes",
+    "cli_export_excel": "Reporte Completo G A FRIAS",
+    "cli_export_pdf": "G A FRIAS — Reporte de Clientes",
     "cli_total_sel": "Total seleccionados",
 
     // ChatBot
@@ -207,7 +207,7 @@ export const translations = {
     "bot_typing": "Escribiendo...",
     "bot_end": "¡Perfecto! Estamos guardando tu perfil...",
     "bot_opt_skip": "Omitir",
-    "bot_q_name": "¡Hola! Soy tu asistente de Gensy. ¿Cuál es tu nombre completo tal como aparece en tu ID?",
+    "bot_q_name": "¡Hola! Soy tu asistente de G A FRIAS. ¿Cuál es tu nombre completo tal como aparece en tu ID?",
     "bot_q_people": "¡Un gusto conocerte! ¿Para cuántas personas estás solicitando el inmueble?",
     "bot_q_rooms": "¿Cuántas habitaciones requieren en total?",
     "bot_q_ages": "¿Cuáles son las edades de todos los ocupantes? (Escribe separado por comas, ej: 30, 28, 5)",
@@ -281,7 +281,7 @@ export const translations = {
     "conf_title": "Configuración",
     "conf_desc": "Ajustes del sistema y preferencias de seguridad.",
     "conf_sec": "Seguridad",
-    "conf_sec_desc": "Gestiona el acceso administrativo a My Agenda.",
+    "conf_sec_desc": "Gestiona el acceso administrativo a G A FRIAS.",
     "conf_logout": "Cerrar Sesión",
     "conf_logout_confirm": "¿Deseas cerrar la sesión de forma segura?",
     "conf_notif": "Notificaciones",
@@ -299,8 +299,8 @@ export const translations = {
   },
   en: {
     // General
-    "brand_name": "My customized agenda Gensy frias",
-    "short_brand": "My customized agenda",
+    "brand_name": "G A FRIAS REAL ESTATE",
+    "short_brand": "G A FRIAS",
     "developed_by_text": "Developed by Mr. Moises Cuevas",
     "loading": "Loading data...",
     "search_placeholder": "Search...",
@@ -322,7 +322,7 @@ export const translations = {
     "login_pass": "Password",
     "login_btn": "Log In",
     "login_verifying": "Verifying...",
-    "login_restricted": "Restricted Access · Gensy frias Security",
+    "login_restricted": "Restricted Access · G A FRIAS Security",
     "login_error_default": "Invalid credentials. Please check your email and password.",
     
     // Layout
@@ -439,7 +439,7 @@ export const translations = {
 
     // Dashboard
     "dash_title": "Dashboard",
-    "dash_desc": "Smart management and metrics for your My Agenda leads.",
+    "dash_desc": "Smart management and metrics for your G A FRIAS leads.",
     "dash_copied": "Copied",
     "dash_link": "Link",
     "dash_view_form": "View Form",
@@ -495,8 +495,8 @@ export const translations = {
     "cli_view_details": "View details",
     "cli_del_confirm": "Are you sure you want to delete",
     "cli_del_error": "Error deleting:",
-    "cli_export_excel": "My Agenda Complete Report",
-    "cli_export_pdf": "My Agenda — Clients Report",
+    "cli_export_excel": "G A FRIAS Complete Report",
+    "cli_export_pdf": "G A FRIAS — Clients Report",
     "cli_total_sel": "Total selected",
 
     // ChatBot
@@ -505,7 +505,7 @@ export const translations = {
     "bot_typing": "Typing...",
     "bot_end": "Perfect! We are saving your profile...",
     "bot_opt_skip": "Skip",
-    "bot_q_name": "Hello! I am your Gensy assistant. What is your full name as it appears on your ID?",
+    "bot_q_name": "Hello! I am your G A FRIAS assistant. What is your full name as it appears on your ID?",
     "bot_q_people": "Nice to meet you! How many people are applying to live in the property?",
     "bot_q_rooms": "How many bedrooms do you need in total?",
     "bot_q_ages": "What are the ages of all occupants? (Comma separated, e.g.: 30, 28, 5)",
@@ -579,7 +579,7 @@ export const translations = {
     "conf_title": "Settings",
     "conf_desc": "System settings and security preferences.",
     "conf_sec": "Security",
-    "conf_sec_desc": "Manage administrative access to My Agenda.",
+    "conf_sec_desc": "Manage administrative access to G A FRIAS.",
     "conf_logout": "Log Out",
     "conf_logout_confirm": "Do you want to safely log out?",
     "conf_notif": "Notifications",

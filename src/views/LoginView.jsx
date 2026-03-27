@@ -65,7 +65,7 @@ export default function LoginView() {
             {t('short_brand')}
           </h1>
           <p style={{ fontSize: 16, color: '#64748b', fontWeight: 800 }}>
-            Gensy frias
+            G A FRIAS REAL ESTATE
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function LoginView() {
           <div className="fg" style={{ marginBottom: 0 }}>
             <label>{t('login_email')}</label>
             <input 
-              type="email" required placeholder="admin@gensy.com"
+              type="email" required placeholder="admin@gafrias.com"
               value={email} onChange={e => setEmail(e.target.value)}
               style={{ padding: '14px 18px', fontSize: 15 }}
             />

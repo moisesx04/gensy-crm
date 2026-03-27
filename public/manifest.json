@@ -1,11 +1,11 @@
 {
-  "name": "My agenda personalizada Gensy frias",
-  "short_name": "My agenda personalizada",
+  "name": "G A FRIAS REAL ESTATE",
+  "short_name": "G A FRIAS",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
-  "description": "Sistema de gestión inmobiliaria y registro de clientes GENSY.",
+  "description": "Sistema de gestión inmobiliaria y registro de clientes G A FRIAS REAL ESTATE.",
   "icons": [
     {
       "src": "/logo192.png",

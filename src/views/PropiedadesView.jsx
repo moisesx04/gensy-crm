@@ -31,7 +31,7 @@ export default function PropiedadesView() {
     return () => { unsubProps(); unsubClients(); };
   }, []);
 
-  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' });
+  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' });
 
   // Computed stats
   const totalProps = properties.length;
@@ -67,7 +67,8 @@ export default function PropiedadesView() {
         beds: newP.beds || 0,
         baths: newP.baths || 0,
         tag: newP.tag || 'Venta',
-        description: newP.description || ''
+        description: newP.description || '',
+        image_url: newP.image_url || ''
       };
 
       if (newP.id) {
@@ -79,7 +80,7 @@ export default function PropiedadesView() {
       }
 
       setShowAdd(false);
-      setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' });
+      setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' });
     } catch (err) { alert('Error guardando: ' + err.message); }
   };
 
@@ -92,7 +93,8 @@ export default function PropiedadesView() {
       beds: p.beds || '',
       baths: p.baths || '',
       tag: p.tag || 'Venta',
-      description: p.description || ''
+      description: p.description || '',
+      image_url: p.image_url || ''
     });
     setShowAdd(true);
   };
@@ -167,7 +169,7 @@ export default function PropiedadesView() {
           <h1>{t('prop_title')}</h1>
           <p>{t('prop_desc')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' }); setShowAdd(true); }}>
+        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' }); setShowAdd(true); }}>
           <Plus size={18} /> {t('prop_new')}
         </button>
       </div>
@@ -215,7 +217,7 @@ export default function PropiedadesView() {
           <div className="prop-empty-icon">🏠</div>
           <h3>No hay propiedades{filter !== 'Todos' ? ` en "${filterTabs.find(f => f.key === filter)?.label}"` : ''}</h3>
           <p>Agrega tu primera propiedad para comenzar a gestionarla aquí.</p>
-          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '' }); setShowAdd(true); }}>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' }); setShowAdd(true); }}>
             <Plus size={16} /> Nueva propiedad
           </button>
         </motion.div>
@@ -240,16 +242,23 @@ export default function PropiedadesView() {
                 <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', filter: 'blur(12px)' }} />
                 <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)' }} />
 
-                {/* Center icon */}
-                <div style={{
-                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                  width: 68, height: 68, borderRadius: 22, background: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 12px 28px -6px rgba(0,0,0,0.12)',
-                  color: cardAccent(p), zIndex: 5
-                }}>
-                  {p.status === 'Rentada' ? <CheckCircle2 size={34} /> : <Home size={34} strokeWidth={1.5} />}
-                </div>
+                {/* Center / Full image */}
+                {p.image_url ? (
+                  <>
+                    <img src={p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 60%, rgba(0,0,0,0.1) 100%)' }} />
+                  </>
+                ) : (
+                  <div style={{
+                    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                    width: 68, height: 68, borderRadius: 22, background: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 12px 28px -6px rgba(0,0,0,0.12)',
+                    color: cardAccent(p), zIndex: 5
+                  }}>
+                    {p.status === 'Rentada' ? <CheckCircle2 size={34} /> : <Home size={34} strokeWidth={1.5} />}
+                  </div>
+                )}
 
                 {/* Top-right: tag + actions */}
                 <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center', zIndex: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -670,6 +679,15 @@ export default function PropiedadesView() {
                       <MapPin size={17} color="var(--t3)" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
                       <input placeholder={t('prop_ph_loc')} value={newP.loc} onChange={e => setNewP({ ...newP, loc: e.target.value })} style={{ paddingLeft: 42 }} />
                     </div>
+                  </div>
+
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={13} color="var(--t3)" /> URL de la Foto <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>(opcional)</span></label>
+                    <input 
+                      placeholder="https://images.unsplash.com/photo..." 
+                      value={newP.image_url} 
+                      onChange={e => setNewP({ ...newP, image_url: e.target.value })} 
+                    />
                   </div>
 
                   <div className="fg" style={{ marginBottom: 0 }}>

@@ -89,7 +89,7 @@ export default function Layout({ children }) {
           </motion.div>
           <div>
             <h1 style={{ fontSize: 14, lineHeight: 1.2 }}>{t('short_brand')}</h1>
-            <span style={{ fontSize: 12, fontWeight: 800 }}>Gensy frias</span>
+            <span style={{ fontSize: 12, fontWeight: 800 }}>G A FRIAS REAL ESTATE</span>
           </div>
         </div>
 

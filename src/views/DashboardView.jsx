@@ -119,7 +119,7 @@ export default function DashboardView() {
           <h1 style={{ fontSize: 34, background: 'linear-gradient(135deg, var(--t1), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {t('dash_title')}
           </h1>
-          <p style={{ fontSize: 16 }}>Bienvenido de nuevo al panel interactivo de GENSY.</p>
+          <p style={{ fontSize: 16 }}>Bienvenido de nuevo al panel interactivo de G A FRIAS REAL ESTATE.</p>
         </div>
         <div style={{ display:'flex', gap: 12 }}>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn btn-ghost" onClick={() => copy(formLink, setCopied)}>

@@ -235,7 +235,7 @@ export default function FormView() {
               }}>🏡</div>
               <div>
                 <div style={{ color: 'var(--t1)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.01em', lineHeight: 1.2 }}>My agenda<br/>personalizada</div>
-                <div style={{ color: 'var(--t3)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800, marginTop: 4 }}>Gensy frias</div>
+                <div style={{ color: 'var(--t3)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800, marginTop: 4 }}>G A FRIAS REAL ESTATE</div>
               </div>
             </div>
 
