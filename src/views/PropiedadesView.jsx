@@ -33,7 +33,7 @@ export default function PropiedadesView() {
     return () => { unsubProps(); unsubClients(); };
   }, []);
 
-  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] });
+  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [], status: 'Disponible' });
 
 
   // Computed stats
@@ -72,19 +72,20 @@ export default function PropiedadesView() {
         tag: newP.tag || 'Venta',
         description: newP.description || '',
         image_url: newP.image_url || '',
-        image_urls: newP.image_urls || []
+        image_urls: newP.image_urls || [],
+        status: newP.status || 'Disponible'
       };
 
       if (newP.id) {
         const updatedProp = await updateProperty(sanitizedP);
-        setProperties(prev => prev.map(p => p.id === newP.id ? { ...updatedProp, status: p.status, cliente_id: p.cliente_id } : p));
+        setProperties(prev => prev.map(p => p.id === newP.id ? { ...updatedProp, cliente_id: p.cliente_id } : p));
       } else {
         const savedProp = await addProperty(sanitizedP);
         setProperties(prev => [savedProp, ...prev]);
       }
 
       setShowAdd(false);
-      setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' });
+      setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [], status: 'Disponible' });
     } catch (err) { alert('Error guardando: ' + err.message); }
   };
 
@@ -99,7 +100,8 @@ export default function PropiedadesView() {
       tag: p.tag || 'Venta',
       description: p.description || '',
       image_url: p.image_url || '',
-      image_urls: p.image_urls || []
+      image_urls: p.image_urls || [],
+      status: p.status || 'Disponible'
     });
     setShowAdd(true);
   };
@@ -250,7 +252,7 @@ export default function PropiedadesView() {
           <button className="btn btn-primary" style={{ background: '#10b981', boxShadow: '0 8px 16px -4px rgba(16, 185, 129, 0.3)' }} onClick={exportExcel}>
             <FileText size={15} /> Excel
           </button>
-          <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
+          <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [], status: 'Disponible' }); setShowAdd(true); }}>
             <Plus size={18} /> {t('prop_new')}
           </button>
         </div>
@@ -299,7 +301,7 @@ export default function PropiedadesView() {
           <div className="prop-empty-icon">🏠</div>
           <h3>No hay propiedades{filter !== 'Todos' ? ` en "${filterTabs.find(f => f.key === filter)?.label}"` : ''}</h3>
           <p>Agrega tu primera propiedad para comenzar a gestionarla aquí.</p>
-          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [], status: 'Disponible' }); setShowAdd(true); }}>
             <Plus size={16} /> Nueva propiedad
           </button>
         </motion.div>
@@ -412,14 +414,24 @@ export default function PropiedadesView() {
                   </button>
                 </div>
 
-                {/* Rentada badge bottom-left */}
-                {p.status === 'Rentada' && (
-                  <div style={{ position: 'absolute', bottom: 12, left: 14, zIndex: 10 }}>
-                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 10, fontWeight: 900, background: 'var(--success)', color: '#fff', letterSpacing: '0.04em' }}>
+                {/* Status badges bottom-left */}
+                <div style={{ position: 'absolute', bottom: 12, left: 14, zIndex: 10, display: 'flex', gap: 6 }}>
+                  {p.status === 'Rentada' && (
+                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 10, fontWeight: 900, background: 'var(--success)', color: '#fff', letterSpacing: '0.04em', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                       ✓ {t('prop_rented')}
                     </span>
-                  </div>
-                )}
+                  )}
+                  {p.status === 'No Disponible' && (
+                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 10, fontWeight: 900, background: 'var(--danger)', color: '#fff', letterSpacing: '0.04em', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                      ✕ NO DISPONIBLE
+                    </span>
+                  )}
+                  {p.status !== 'Rentada' && p.status !== 'No Disponible' && (
+                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 10, fontWeight: 900, background: 'var(--accent)', color: '#fff', letterSpacing: '0.04em', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                      ◆ DISPONIBLE
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Card Body */}
@@ -468,10 +480,17 @@ export default function PropiedadesView() {
                 </div>
 
                 {/* Assign Button */}
-                {p.tag === 'Alquiler' && p.status !== 'Rentada' && (
+                {p.tag === 'Alquiler' && p.status !== 'Rentada' && p.status !== 'No Disponible' && (
                   <button onClick={() => setRentingProp(p)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
                     <UserPlus size={15} /> {t('prop_assign')}
                   </button>
+                )}
+                
+                {/* No Disponible Message */}
+                {p.status === 'No Disponible' && (
+                  <div style={{ width: '100%', padding: '12px', textAlign: 'center', background: '#f8fafc', color: 'var(--t3)', borderRadius: 12, fontSize: 13, fontWeight: 800, border: '1.5px dashed var(--card-border)' }}>
+                    Propiedad deshabilitada
+                  </div>
                 )}
 
                 {/* Assigned client info */}
@@ -873,6 +892,18 @@ export default function PropiedadesView() {
                       <select value={newP.tag} onChange={e => setNewP({ ...newP, tag: e.target.value })} style={{ fontWeight: 600 }}>
                         <option value="Venta">{t('prop_filter_sale')}</option>
                         <option value="Alquiler">{t('prop_filter_rent')}</option>
+                      </select>
+                    </div>
+                    <div className="fg" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
+                      <label>Disponibilidad Actual</label>
+                      <select 
+                        value={newP.status} 
+                        onChange={e => setNewP({ ...newP, status: e.target.value })} 
+                        style={{ fontWeight: 700, color: newP.status === 'No Disponible' ? 'var(--danger)' : 'var(--accent)' }}
+                      >
+                        <option value="Disponible">Disponible (Visible para rentar)</option>
+                        <option value="No Disponible">No Disponible (Oculto u ocupado externamente)</option>
+                        {newP.status === 'Rentada' && <option value="Rentada">Rentada a cliente G A FRIAS</option>}
                       </select>
                     </div>
                   </div>
