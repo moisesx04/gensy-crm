@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, Calendar, Users, Search, Edit2, TrendingUp, Tag, FileText } from 'lucide-react';
+import { MapPin, Bed, Bath, Plus, Home, UserPlus, Trash2, CheckCircle2, Clock, Calendar, Users, Search, Edit2, TrendingUp, Tag, FileText, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { getProperties, addProperty, updateProperty, subscribeTo, subscribeClientes, deleteProperty } from '../lib/api';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,7 +18,7 @@ export default function PropiedadesView() {
   const [rentingTime, setRentingTime] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [costPrice, setCostPrice] = useState('');
-  const [salePrice, setSalePrice] = useState('');
+  const [salePrice, setCostPrice2] = useState(''); // Just keeping the existing names
   const [commissions, setCommissions] = useState([]); // [{ name: '', amount: '' }]
   const { searchQuery } = useSearch();
 
@@ -31,7 +31,8 @@ export default function PropiedadesView() {
     return () => { unsubProps(); unsubClients(); };
   }, []);
 
-  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' });
+  const [newP, setNewP] = useState({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] });
+
 
   // Computed stats
   const totalProps = properties.length;
@@ -68,7 +69,8 @@ export default function PropiedadesView() {
         baths: newP.baths || 0,
         tag: newP.tag || 'Venta',
         description: newP.description || '',
-        image_url: newP.image_url || ''
+        image_url: newP.image_url || '',
+        image_urls: newP.image_urls || []
       };
 
       if (newP.id) {
@@ -94,9 +96,59 @@ export default function PropiedadesView() {
       baths: p.baths || '',
       tag: p.tag || 'Venta',
       description: p.description || '',
-      image_url: p.image_url || ''
+      image_url: p.image_url || '',
+      image_urls: p.image_urls || []
     });
     setShowAdd(true);
+  };
+
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          // Compression bounds
+          const MAX_SIZE = 800;
+          if (width > height) {
+            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+          } else {
+            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Check if limits exceeded
+    if ((newP.image_urls?.length || 0) + files.length > 3) {
+      alert('Solo puedes subir hasta 3 fotos para no llenar el almacenamiento.');
+      return;
+    }
+
+    try {
+      const compressedImages = await Promise.all(files.map(compressImage));
+      setNewP(prev => ({ ...prev, image_urls: [...(prev.image_urls || []), ...compressedImages] }));
+    } catch (err) {
+      alert("Error al comprimir las imágenes.");
+    }
+    e.target.value = null; // reset
   };
 
   const handleAssign = async () => {
@@ -169,7 +221,7 @@ export default function PropiedadesView() {
           <h1>{t('prop_title')}</h1>
           <p>{t('prop_desc')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' }); setShowAdd(true); }}>
+        <button className="btn btn-primary" onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
           <Plus size={18} /> {t('prop_new')}
         </button>
       </div>
@@ -217,7 +269,7 @@ export default function PropiedadesView() {
           <div className="prop-empty-icon">🏠</div>
           <h3>No hay propiedades{filter !== 'Todos' ? ` en "${filterTabs.find(f => f.key === filter)?.label}"` : ''}</h3>
           <p>Agrega tu primera propiedad para comenzar a gestionarla aquí.</p>
-          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '' }); setShowAdd(true); }}>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => { setNewP({ title: '', loc: '', price: '', beds: '', baths: '', tag: 'Venta', description: '', image_url: '', image_urls: [] }); setShowAdd(true); }}>
             <Plus size={16} /> Nueva propiedad
           </button>
         </motion.div>
@@ -243,10 +295,15 @@ export default function PropiedadesView() {
                 <div style={{ position: 'absolute', bottom: -15, left: -15, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.3)', filter: 'blur(10px)' }} />
 
                 {/* Center / Full image */}
-                {p.image_url ? (
+                {p.image_urls?.length > 0 || p.image_url ? (
                   <>
-                    <img src={p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={p.image_urls?.length > 0 ? p.image_urls[0] : p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 60%, rgba(0,0,0,0.1) 100%)' }} />
+                    {p.image_urls?.length > 1 && (
+                      <div style={{ position: 'absolute', bottom: 12, right: 12, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 12 }}>
+                        + {p.image_urls.length - 1} fotos
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div style={{
@@ -682,7 +739,33 @@ export default function PropiedadesView() {
                   </div>
 
                   <div className="fg" style={{ marginBottom: 0 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={13} color="var(--t3)" /> URL de la Foto <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>(opcional)</span></label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><ImageIcon size={14} color="var(--t3)" /> Fotos de la propiedad</span>
+                      <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{(newP.image_urls?.length || 0)} / 3</span>
+                    </label>
+                    
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                      {(newP.image_urls || []).map((url, idx) => (
+                        <div key={idx} style={{ position: 'relative', width: 72, height: 72, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--card-border)' }}>
+                          <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Upload preview" />
+                          <button type="button" onClick={() => setNewP(p => ({ ...p, image_urls: p.image_urls.filter((_, i) => i !== idx) }))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+                            <X size={12} strokeWidth={3} />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {(newP.image_urls?.length || 0) < 3 && (
+                        <label style={{ width: 72, height: 72, borderRadius: 12, border: '2px dashed var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#f8fafc', color: 'var(--t3)' }}>
+                          <Upload size={18} style={{ marginBottom: 4 }} />
+                          <span style={{ fontSize: 10, fontWeight: 700 }}>Subir</span>
+                          <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={13} color="var(--t3)" /> URL Analógica <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 500 }}>(opcional)</span></label>
                     <input 
                       placeholder="https://images.unsplash.com/photo..." 
                       value={newP.image_url} 

@@ -35,6 +35,7 @@ export default async function handler(req, res) {
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS description TEXT;`;
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS image_url TEXT;`;
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS image_urls JSONB;`;
       } catch (e) {
         // Ignorar si ya existe o hay error de permisos (ya fue manejado en init.js igualmente)
       }
@@ -52,8 +53,8 @@ export default async function handler(req, res) {
       const p = req.body;
       if (!p.title) return res.status(400).json({ error: 'El título de la propiedad es requerido.' });
       const { rows } = await sql`
-        INSERT INTO propiedades (title, location, price, beds, baths, tag, description, image_url)
-        VALUES (${p.title}, ${p.loc}, ${p.price}, ${p.beds}, ${p.baths}, ${p.tag}, ${p.description || ''}, ${p.image_url || ''})
+        INSERT INTO propiedades (title, location, price, beds, baths, tag, description, image_url, image_urls)
+        VALUES (${p.title}, ${p.loc}, ${p.price}, ${p.beds}, ${p.baths}, ${p.tag}, ${p.description || ''}, ${p.image_url || ''}, ${p.image_urls ? JSON.stringify(p.image_urls) : null}::jsonb)
         RETURNING *;
       `;
       return res.status(201).json(rows[0]);
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
         // Full property details update
         const { rows } = await sql`
           UPDATE propiedades 
-          SET title=${title}, location=${loc}, price=${price}, beds=${beds}, baths=${baths}, tag=${tag}, description=${req.body.description || ''}, image_url=${req.body.image_url || ''}
+          SET title=${title}, location=${loc}, price=${price}, beds=${beds}, baths=${baths}, tag=${tag}, description=${req.body.description || ''}, image_url=${req.body.image_url || ''}, image_urls=${req.body.image_urls ? JSON.stringify(req.body.image_urls) : null}::jsonb
           WHERE id = ${id}
           RETURNING *;
         `;
