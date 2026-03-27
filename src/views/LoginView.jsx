@@ -54,10 +54,10 @@ export default function LoginView() {
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ 
             width: 70, height: 70, borderRadius: 20, 
-            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+            background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px', color: '#fff',
-            boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)'
+            boxShadow: '0 8px 16px rgba(37, 99, 235, 0.2)'
           }}>
             <Home size={34} />
           </div>

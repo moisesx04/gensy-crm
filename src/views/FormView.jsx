@@ -63,10 +63,10 @@ function OptBtn({ label, emoji, selected, onClick }) {
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '12px 20px', borderRadius: 12,
-        border: `2px solid ${selected ? '#4f6ef7' : '#e4e9f4'}`,
+        border: `2px solid ${selected ? '#2563eb' : '#e4e9f4'}`,
         background: selected ? 'linear-gradient(135deg,#edf0ff,#f3f1ff)' : '#fafbff',
         fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
-        color: selected ? '#4f6ef7' : '#5a6480',
+        color: selected ? '#2563eb' : '#5a6480',
         cursor: 'pointer', transition: 'border-color .15s, background .15s',
         textAlign: 'left', position: 'relative',
       }}
@@ -76,7 +76,7 @@ function OptBtn({ label, emoji, selected, onClick }) {
       {selected && (
         <span style={{
           width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-          background: '#4f6ef7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Check size={11} color="#fff" strokeWidth={3} />
         </span>
@@ -113,7 +113,7 @@ function SRow({ label, value, hi }) {
       padding: '12px 0', borderBottom: '1px solid #f0f3fb', gap: 12,
     }}>
       <span style={{ fontSize: 14.5, color: '#5a6480', fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 15.5, fontWeight: 700, color: hi ? '#4f6ef7' : '#0d1630', textAlign: 'right', maxWidth: '60%' }}>{value || '—'}</span>
+      <span style={{ fontSize: 15.5, fontWeight: 700, color: hi ? '#2563eb' : '#0d1630', textAlign: 'right', maxWidth: '60%' }}>{value || '—'}</span>
     </div>
   );
 }
@@ -195,8 +195,8 @@ export default function FormView() {
   /* Focus styles helper */
   const inp = (name) => ({
     ...INP,
-    borderColor: focused === name ? '#4f6ef7' : '#e4e9f4',
-    boxShadow: focused === name ? '0 0 0 3px rgba(79,110,247,.12)' : 'none',
+    borderColor: focused === name ? '#2563eb' : '#e4e9f4',
+    boxShadow: focused === name ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : 'none',
   });
 
   return (

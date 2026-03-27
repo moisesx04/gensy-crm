@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       // Auto-migración silenciosa para asegurar que la columna financiero exista
       try {
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS description TEXT;`;
       } catch (e) {
         // Ignorar si ya existe o hay error de permisos (ya fue manejado en init.js igualmente)
       }
@@ -47,8 +48,8 @@ export default async function handler(req, res) {
       const p = req.body;
       if (!p.title) return res.status(400).json({ error: 'El título de la propiedad es requerido.' });
       const { rows } = await sql`
-        INSERT INTO propiedades (title, location, price, beds, baths, tag)
-        VALUES (${p.title}, ${p.loc}, ${p.price}, ${p.beds}, ${p.baths}, ${p.tag})
+        INSERT INTO propiedades (title, location, price, beds, baths, tag, description)
+        VALUES (${p.title}, ${p.loc}, ${p.price}, ${p.beds}, ${p.baths}, ${p.tag}, ${p.description || ''})
         RETURNING *;
       `;
       return res.status(201).json(rows[0]);

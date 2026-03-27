@@ -144,8 +144,8 @@ export default function PropiedadesView() {
 
   const cardGradient = (p) => {
     if (p.status === 'Rentada') return 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)';
-    if (p.tag === 'Venta') return 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)';
-    return 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+    if (p.tag === 'Venta') return 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+    return 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)';
   };
   const cardAccent = (p) => {
     if (p.status === 'Rentada') return 'var(--success)';
@@ -255,7 +255,7 @@ export default function PropiedadesView() {
                 <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, alignItems: 'center', zIndex: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   <span style={{
                     padding: '5px 12px', borderRadius: 99, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em',
-                    background: p.tag === 'Venta' ? '#eef2ff' : '#eff6ff',
+                    background: p.tag === 'Venta' ? '#eff6ff' : '#f0f9ff',
                     color: p.tag === 'Venta' ? 'var(--accent)' : 'var(--info)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                   }}>{p.tag === 'Venta' ? t('prop_filter_sale') : t('prop_filter_rent')}</span>
@@ -359,7 +359,7 @@ export default function PropiedadesView() {
               style={{ maxWidth: 720, padding: 0 }}
             >
               <div className="modal-hdr" style={{ borderBottom: '1px solid var(--card-border)', padding: '20px 24px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
                   <UserPlus size={20} />
                 </div>
                 <div style={{ marginLeft: 14, flex: 1 }}>
@@ -463,7 +463,7 @@ export default function PropiedadesView() {
                               animate={{ scale: 1 }}
                               style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 20, background: 'rgba(79, 70, 229, 0.05)', borderRadius: 18, border: '1px solid rgba(79, 70, 229, 0.2)' }}
                             >
-                              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justify_content: 'center', fontSize: 18, fontWeight: 900, boxShadow: '0 8px 16px -4px rgba(79, 70, 229, 0.3)' }}>
+                              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 900, boxShadow: '0 8px 16px -4px rgba(37, 99, 235, 0.3)' }}>
                                 {selectedClient.nombreCompleto.charAt(0).toUpperCase()}
                               </div>
                               <div style={{ flex: 1 }}>
@@ -570,7 +570,7 @@ export default function PropiedadesView() {
 
                         {/* Summary Column - Fixed/Sticky */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'sticky', top: 0, alignSelf: 'start' }}>
-                          <div className="card" style={{ background: 'var(--accent)', color: '#fff', border: 'none', padding: 32, boxShadow: '0 20px 40px -12px rgba(79, 70, 229, 0.4)', borderRadius: 24 }}>
+                          <div className="card" style={{ background: 'var(--accent)', color: '#fff', border: 'none', padding: 32, boxShadow: '0 20px 40px -12px rgba(37, 99, 235, 0.4)', borderRadius: 24 }}>
                             <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.7)', marginBottom: 24, fontWeight: 800 }}>Resumen Financiero</h4>
                             
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -619,7 +619,7 @@ export default function PropiedadesView() {
                             className="btn btn-primary" 
                             type="button"
                             onClick={handleAssign} 
-                            style={{ width: '100%', padding: '20px', justifyContent: 'center', fontSize: 16, borderRadius: 20, boxShadow: '0 8px 16px -4px rgba(79, 70, 229, 0.2)' }}
+                            style={{ width: '100%', padding: '20px', justifyContent: 'center', fontSize: 16, borderRadius: 20, boxShadow: '0 8px 16px -4px rgba(37, 99, 235, 0.2)' }}
                           >
                             <CheckCircle2 size={20} /> {t('prop_confirm_assign')}
                           </motion.button>
@@ -721,7 +721,7 @@ export default function PropiedadesView() {
                   <button className="btn btn-primary" style={{
                     width: '100%', padding: '15px', justifyContent: 'center', fontSize: 15,
                     background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
-                    boxShadow: '0 8px 20px -4px rgba(79,70,229,0.35)'
+                    boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.35)'
                   }}>
                     {newP.id ? '💾 Guardar cambios' : t('prop_btn_save')}
                   </button>

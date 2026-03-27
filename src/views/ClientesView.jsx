@@ -9,7 +9,7 @@ import 'jspdf-autotable';
 import ClienteModal from '../components/ClienteModal';
 import { useLanguage } from '../context/LanguageContext';
 
-const AVATAR_COLORS = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#6366f1'];
+const AVATAR_COLORS = ['#2563eb', '#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#06b6d4', '#f97316', '#22c55e'];
 
 export default function ClientesView() {
   const [clientes, setClientes] = useState([]);
@@ -122,7 +122,7 @@ export default function ClientesView() {
         c.createdAt ? new Date(c.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'es-DO') : '—',
       ]),
       styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
       alternateRowStyles: { fillColor: [248, 250, 252] },
     });
     doc.save(`MyAgenda_Report_${new Date().toISOString().slice(0,10)}.pdf`);

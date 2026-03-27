@@ -50,7 +50,7 @@ export default function ClienteModal({ cliente: c, onClose }) {
               background: 'linear-gradient(135deg, var(--accent), var(--secondary))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontWeight: 800, fontSize: 18, color: '#fff',
-              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)', flexShrink: 0
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)', flexShrink: 0
             }}>
               {(c.nombreCompleto || '?').charAt(0).toUpperCase()}
             </div>

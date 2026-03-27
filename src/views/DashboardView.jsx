@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { subscribeClientes, subscribeTo, getProperties } from '../lib/api';
-import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart } from 'lucide-react';
+import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart, Home } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const container = {
@@ -36,7 +36,7 @@ function fmtDate(iso, t) {
   return d.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
 }
 
-const COLORS = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4'];
+const COLORS = ['#2563eb', '#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#06b6d4'];
 
 export default function DashboardView() {
   const [clientes, setClientes] = useState([]);
@@ -101,11 +101,11 @@ export default function DashboardView() {
   const formLink = `${window.location.origin}/form`;
   const chatLink = `${window.location.origin}/chat`;
 
-  const copy = (link, setter) => {
+  const copy = useCallback((link, setter) => {
     navigator.clipboard.writeText(link).catch(() => {});
     setter(true);
     setTimeout(() => setter(false), 2000);
-  };
+  }, []);
 
   return (
     <div className="page" style={{ maxWidth: 1400, margin: '0 auto' }}>
@@ -144,7 +144,7 @@ export default function DashboardView() {
         animate="show"
       >
         {/* Row 1: Net Profit Focus (Large Card) */}
-        <motion.div className="card" variants={fadeUp} style={{ gridColumn: 'span 8', gridRow: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 40, background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(99, 102, 241, 0.02))' }}>
+        <motion.div className="card" variants={fadeUp} style={{ gridColumn: 'span 8', gridRow: 'span 2', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 40, background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(59, 130, 246, 0.02))' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h3 style={{ fontSize: 14, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Ganancia Neta Mensual</h3>

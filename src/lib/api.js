@@ -17,6 +17,11 @@ const fetchApi = async (url, options = {}) => {
     });
     const data = await res.json();
     if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('gensy_token');
+        localStorage.removeItem('gensy_user');
+        window.location.href = '/login';
+      }
       console.error(`[API Error] ${url}:`, data.error || res.statusText);
       throw new Error(data.error || 'API Error');
     }
