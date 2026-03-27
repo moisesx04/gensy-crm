@@ -27,6 +27,13 @@ export default async function handler(req, res) {
 
   try {
     if (method === 'GET') {
+      // Auto-migración silenciosa para asegurar que la columna financiero exista
+      try {
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;
+      } catch (e) {
+        // Ignorar si ya existe o hay error de permisos (ya fue manejado en init.js igualmente)
+      }
+
       const { rows } = await sql`
         SELECT p.*, c.nombre_completo as cliente_nombre 
         FROM propiedades p
