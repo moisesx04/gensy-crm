@@ -156,24 +156,26 @@ export default function Layout({ children }) {
         }}
       >
         {/* Header */}
-        <header className="header">
-          <motion.button
-            className="toggle-btn"
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setOpen(!open)}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={open ? 'x' : 'menu'}
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                {open ? <X size={20} /> : <Menu size={20} />}
-              </motion.div>
-            </AnimatePresence>
-          </motion.button>
+        <header className="header" style={{ paddingLeft: isMobile ? 16 : 32 }}>
+          {isMobile && (
+            <motion.button
+              className="toggle-btn"
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setOpen(!open)}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={open ? 'x' : 'menu'}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {open ? <X size={20} /> : <Menu size={20} />}
+                </motion.div>
+              </AnimatePresence>
+            </motion.button>
+          )}
 
           {location.pathname !== '/propiedades' && (
             <div className="search-wrap hidden-mobile">
