@@ -266,6 +266,16 @@ export const translations = {
     "prop_ph_loc": "Ej: Piantini, SD",
     "prop_alert_datetime": "Por favor selecciona fecha y hora para la cita.",
     "prop_alert_success": "Asignado con éxito a",
+    "prop_cost": "Precio de Costo",
+    "prop_sale": "Precio de Venta",
+    "prop_commissions": "Comisiones / Distribución",
+    "prop_add_comm": "+ Añadir Comisión",
+    "prop_net_profit": "Ganancia Neta",
+    "prop_profit_day": "Ganancia Hoy",
+    "prop_profit_month": "Ganancia Mes",
+    "prop_profit_year": "Ganancia Año",
+    "prop_comm_name": "Nombre",
+    "prop_comm_amount": "Monto",
 
     // Configuracion
     "conf_title": "Configuración",
@@ -554,6 +564,16 @@ export const translations = {
     "prop_ph_loc": "e.g.: Piantini, SD",
     "prop_alert_datetime": "Please select a date and time for the appointment.",
     "prop_alert_success": "Assigned successfully to",
+    "prop_cost": "Cost Price",
+    "prop_sale": "Sale Price",
+    "prop_commissions": "Commissions / Distribution",
+    "prop_add_comm": "+ Add Commission",
+    "prop_net_profit": "Net Profit",
+    "prop_profit_day": "Today's Profit",
+    "prop_profit_month": "Monthly Profit",
+    "prop_profit_year": "Annual Profit",
+    "prop_comm_name": "Name",
+    "prop_comm_amount": "Amount",
 
     // Configuracion
     "conf_title": "Settings",

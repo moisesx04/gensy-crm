@@ -17,6 +17,9 @@ export default function PropiedadesView() {
   const [rentingDate, setRentingDate] = useState('');
   const [rentingTime, setRentingTime] = useState('');
   const [clientSearch, setClientSearch] = useState('');
+  const [costPrice, setCostPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
+  const [commissions, setCommissions] = useState([]); // [{ name: '', amount: '' }]
   const { searchQuery } = useSearch();
 
   useEffect(() => {
@@ -102,17 +105,33 @@ export default function PropiedadesView() {
     }
     try {
       const fecha_cita = `${rentingDate}T${rentingTime}:00Z`;
+      const ganancia_total = (Number(salePrice) || 0) - (Number(costPrice) || 0);
+      const total_comisiones = commissions.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+      const ganancia_neta = ganancia_total - total_comisiones;
+
       await updateProperty({
         id: rentingProp.id,
         status: 'Rentada',
         cliente_id: selectedClient.id,
-        fecha_cita
+        cliente_nombre: selectedClient.nombreCompleto,
+        fecha_cita,
+        financiero: {
+          costo: Number(costPrice) || 0,
+          venta: Number(salePrice) || 0,
+          ganancia_total,
+          comisiones: commissions.filter(c => c.name && c.amount),
+          ganancia_neta,
+          fecha_transaccion: new Date().toISOString()
+        }
       });
       alert(`${t('prop_alert_success')} ${selectedClient.nombreCompleto}. ${t('prop_appointment')} ${rentingDate} ${rentingTime}`);
       setRentingProp(null);
       setSelectedClient(null);
       setRentingDate('');
       setRentingTime('');
+      setCostPrice('');
+      setSalePrice('');
+      setCommissions([]);
     } catch (err) { alert(err.message); }
   };
 
@@ -434,9 +453,9 @@ export default function PropiedadesView() {
                       animate={{ opacity: 1, x: 0 }}
                       style={{ padding: 32 }}
                     >
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
-                        <div>
-                          <div style={{ marginBottom: 24 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, maxHeight: '60vh', overflowY: 'auto', paddingRight: 8 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                          <div style={{ marginBottom: 0 }}>
                             <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 12 }}>Cliente Seleccionado</h4>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--accent-light)', borderRadius: 14, border: '1px solid var(--accent)' }}>
                               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800 }}>
@@ -453,45 +472,131 @@ export default function PropiedadesView() {
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          <div style={{ height: 1.5, background: 'var(--card-border)', opacity: 0.5 }} />
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                             <div className="fg">
-                              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Fecha de la Cita</label>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}><Calendar size={14} /> Fecha de la Cita</label>
                               <input type="date" required value={rentingDate} onChange={e => setRentingDate(e.target.value)} />
                             </div>
                             <div className="fg">
-                              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={14} /> Hora de la Cita</label>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}><Clock size={14} /> Hora de la Cita</label>
                               <input type="time" required value={rentingTime} onChange={e => setRentingTime(e.target.value)} />
+                            </div>
+                          </div>
+
+                          <div style={{ height: 1.5, background: 'var(--card-border)', opacity: 0.5 }} />
+
+                          {/* Sección Financiera */}
+                          <div>
+                            <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <TrendingUp size={14} /> {t('prop_commissions')}
+                            </h4>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                              <div className="fg">
+                                <label style={{ fontSize: 12 }}>{t('prop_cost')} ($)</label>
+                                <input type="number" placeholder="1000" value={costPrice} onChange={e => setCostPrice(e.target.value)} style={{ fontWeight: 700 }} />
+                              </div>
+                              <div className="fg">
+                                <label style={{ fontSize: 12 }}>{t('prop_sale')} ($)</label>
+                                <input type="number" placeholder="2000" value={salePrice} onChange={e => setSalePrice(e.target.value)} style={{ fontWeight: 700, color: 'var(--success)' }} />
+                              </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', padding: 16, borderRadius: 16, border: '1px solid var(--card-border)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>Resta Comisiones</span>
+                                <button 
+                                  onClick={() => setCommissions([...commissions, { name: '', amount: '' }])}
+                                  style={{ padding: '4px 10px', borderRadius: 8, background: '#fff', border: '1px solid var(--card-border)', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: 'var(--accent)' }}
+                                >
+                                  {t('prop_add_comm')}
+                                </button>
+                              </div>
+
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {commissions.map((comm, idx) => (
+                                  <div key={idx} style={{ display: 'flex', gap: 8 }}>
+                                    <input 
+                                      placeholder={t('prop_comm_name')} 
+                                      value={comm.name} 
+                                      onChange={e => {
+                                        const newC = [...commissions];
+                                        newC[idx].name = e.target.value;
+                                        setCommissions(newC);
+                                      }}
+                                      style={{ flex: 2, padding: '8px 12px', fontSize: 12 }}
+                                    />
+                                    <input 
+                                      type="number" 
+                                      placeholder={t('prop_comm_amount')} 
+                                      value={comm.amount} 
+                                      onChange={e => {
+                                        const newC = [...commissions];
+                                        newC[idx].amount = e.target.value;
+                                        setCommissions(newC);
+                                      }}
+                                      style={{ flex: 1, padding: '8px 12px', fontSize: 12 }}
+                                    />
+                                    <button 
+                                      onClick={() => setCommissions(commissions.filter((_, i) => i !== idx))}
+                                      style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 8, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                    >✕</button>
+                                  </div>
+                                ))}
+                                {commissions.length === 0 && (
+                                  <div style={{ textAlign: 'center', padding: '10px', fontSize: 11, color: 'var(--t3)', fontStyle: 'italic' }}>Sin comisiones adicionales.</div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', borderRadius: 20, padding: 24, border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column' }}>
-                          <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 16 }}>Resumen de Renta</h4>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-                              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fff', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
-                                <Home size={24} />
-                              </div>
-                              <div>
-                                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--t1)' }}>{rentingProp.title}</div>
-                                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.location}</div>
-                              </div>
+                        {/* Columna Derecha: Resumen Ganancia */}
+                        <div style={{ background: '#f8fafc', borderRadius: 24, padding: 24, border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignSelf: 'start', position: 'sticky', top: 0 }}>
+                          <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 20 }}>Resumen de Operación</h4>
+                          
+                          <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                              <Home size={22} />
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                              <span style={{ color: 'var(--t2)', fontWeight: 500 }}>Precio pactado:</span>
-                              <span style={{ color: 'var(--t1)', fontWeight: 800 }}>{rentingProp.price}</span>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--t1)' }}>{rentingProp.title}</div>
+                              <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{rentingProp.location}</div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: '#fff', padding: 20, borderRadius: 18, border: '1px solid var(--card-border)', marginBottom: 24 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                              <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Costo:</span>
+                              <span style={{ color: 'var(--t1)', fontWeight: 800 }}>${Number(costPrice).toLocaleString() || '0'}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                              <span style={{ color: 'var(--t2)', fontWeight: 500 }}>Operación:</span>
-                              <span style={{ color: 'var(--info)', fontWeight: 800 }}>Alquiler</span>
+                              <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Venta:</span>
+                              <span style={{ color: 'var(--success)', fontWeight: 800 }}>${Number(salePrice).toLocaleString() || '0'}</span>
+                            </div>
+                            
+                            <div style={{ height: 1, background: 'var(--card-border)', margin: '4px 0' }} />
+                            
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                              <span style={{ color: 'var(--t3)', fontWeight: 600 }}>Comisiones:</span>
+                              <span style={{ color: '#ef4444', fontWeight: 800 }}>-${commissions.reduce((s, c) => s + (Number(c.amount) || 0), 0).toLocaleString()}</span>
+                            </div>
+
+                            <div style={{ height: 1, background: 'var(--card-border)', margin: '4px 0' }} />
+                            
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--t1)', textTransform: 'uppercase' }}>{t('prop_net_profit')}</span>
+                              <span style={{ fontSize: 20, fontWeight: 900, color: 'var(--accent)' }}>
+                                ${((Number(salePrice) || 0) - (Number(costPrice) || 0) - commissions.reduce((s, c) => s + (Number(c.amount) || 0), 0)).toLocaleString()}
+                              </span>
                             </div>
                           </div>
                           
-                          <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px dashed var(--card-border)' }}>
-                             <button className="btn btn-primary" onClick={handleAssign} style={{ width: '100%', padding: '14px', justifyContent: 'center', fontSize: 15, boxShadow: '0 8px 16px -4px rgba(79, 70, 229, 0.2)' }}>
-                              <CheckCircle2 size={18} /> Confirmar Renta
-                             </button>
-                          </div>
+                          <button className="btn btn-primary" onClick={handleAssign} style={{ width: '100%', padding: '16px', justifyContent: 'center', fontSize: 15, borderRadius: 16, boxShadow: '0 8px 20px -4px rgba(79, 70, 229, 0.3)' }}>
+                            <CheckCircle2 size={18} /> Confirmar Asignación
+                          </button>
                         </div>
                       </div>
                     </motion.div>

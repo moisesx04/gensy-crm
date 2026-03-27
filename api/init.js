@@ -67,9 +67,17 @@ export default async function handler(req, res) {
         status TEXT DEFAULT 'Disponible',
         cliente_id UUID REFERENCES clientes(id) ON DELETE SET NULL,
         fecha_cita TIMESTAMP WITH TIME ZONE,
+        financiero JSONB,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    // Migración manual para bases de datos existentes
+    try {
+      await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;
+    } catch (e) {
+      console.log('[Init] Columna financiero ya existe o error ignorado:', e.message);
+    }
 
     await sql`
       CREATE TABLE IF NOT EXISTS notificaciones (

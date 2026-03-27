@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { subscribeClientes } from '../lib/api';
-import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake } from 'lucide-react';
+import { subscribeClientes, subscribeTo, getProperties } from '../lib/api';
+import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const container = {
@@ -40,6 +40,7 @@ const COLORS = ['#4f46e5', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4'
 
 export default function DashboardView() {
   const [clientes, setClientes] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -48,7 +49,7 @@ export default function DashboardView() {
   const { t } = useLanguage();
 
   useEffect(() => {
-    return subscribeClientes(data => {
+    const unsubClients = subscribeClientes(data => {
       setClientes(data);
       setLoading(false);
       setError(null);
@@ -57,6 +58,15 @@ export default function DashboardView() {
       setError(err.message);
       setLoading(false);
     });
+
+    const unsubProps = subscribeTo(getProperties, data => {
+      setProperties(data);
+    });
+
+    return () => {
+      unsubClients();
+      unsubProps();
+    };
   }, []);
 
   // Performance Optimization: Memoized Stats
@@ -85,14 +95,43 @@ export default function DashboardView() {
     const conMascotas = clientes.filter(c => c.mascotas === 'Sí').length;
     const conID = clientes.filter(c => c.tipoSocial && c.tipoSocial !== 'Ninguno').length;
 
-    return { total, hoy, conBanco, programas, avgIncome, avgCredit, conTaxes, conMascotas, conID };
-  }, [clientes]);
+    // Financial calculations
+    const nowStr = now.toDateString();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    const profitDaily = properties.reduce((acc, p) => {
+      if (p.status === 'Rentada' && p.financiero && p.financiero.fecha_transaccion) {
+        const d = new Date(p.financiero.fecha_transaccion);
+        if (d.toDateString() === nowStr) return acc + (p.financiero.ganancia_neta || 0);
+      }
+      return acc;
+    }, 0);
+
+    const profitMonthly = properties.reduce((acc, p) => {
+      if (p.status === 'Rentada' && p.financiero && p.financiero.fecha_transaccion) {
+        const d = new Date(p.financiero.fecha_transaccion);
+        if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) return acc + (p.financiero.ganancia_neta || 0);
+      }
+      return acc;
+    }, 0);
+
+    const profitAnnual = properties.reduce((acc, p) => {
+      if (p.status === 'Rentada' && p.financiero && p.financiero.fecha_transaccion) {
+        const d = new Date(p.financiero.fecha_transaccion);
+        if (d.getFullYear() === thisYear) return acc + (p.financiero.ganancia_neta || 0);
+      }
+      return acc;
+    }, 0);
+
+    return { total, hoy, conBanco, programas, avgIncome, avgCredit, conTaxes, conMascotas, conID, profitDaily, profitMonthly, profitAnnual };
+  }, [clientes, properties]);
 
   const STAT_CARDS = [
     { icon:<Users2 size={24}/>, label:t('dash_stat_total'), val: stats.total, color:'var(--accent)', bg:'var(--accent-light)', sub:t('dash_stat_total_sub') },
-    { icon:<BarChart3 size={24}/>, label:t('dash_stat_today'), val: stats.hoy, color:'var(--success)', bg:'#ecfdf5', sub:t('dash_stat_today_sub') },
-    { icon:<Building2 size={24}/>, label:t('dash_stat_bank'), val: stats.conBanco, color:'var(--warning)', bg:'#fffbeb', sub:`${Math.round((stats.conBanco/stats.total||0)*100)}${t('dash_stat_bank_sub')}` },
-    { icon:<Handshake size={24}/>, label:t('dash_stat_prog'), val: stats.programas, color:'var(--secondary)', bg:'#f5f3ff', sub:t('dash_stat_prog_sub') },
+    { icon:<Building2 size={24}/>, label:"Propiedades Totales", val: properties.length, color:'var(--info)', bg:'#f0f9ff', sub:`${properties.filter(p => p.status !== 'Rentada').length} disponibles` },
+    { icon:<Handshake size={24}/>, label:"Rentas Activas", val: properties.filter(p => p.status === 'Rentada').length, color:'var(--success)', bg:'#ecfdf5', sub: "En el portafolio" },
+    { icon:<BarChart3 size={24}/>, label:t('dash_stat_today'), val: stats.hoy, color:'var(--warning)', bg:'#fffbeb', sub:t('dash_stat_today_sub') },
   ];
 
   const formLink = `${window.location.origin}/form`;
@@ -130,8 +169,41 @@ export default function DashboardView() {
         </div>
       </motion.div>
 
+      {/* Financial Stats Row */}
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 13, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Wallet size={16} color="var(--accent)" /> RESUMEN FINANCIERO (GANANCIA NETA)
+        </h2>
+        <motion.div className="stats-grid" variants={container} initial="hidden" animate="show" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <StatCard 
+            icon={<DollarSign size={24}/>} 
+            label={t('prop_profit_day')} 
+            val={`$${stats.profitDaily.toLocaleString()}`} 
+            color="#047857" bg="#ecfdf5" 
+            sub="Ganancia de hoy" 
+          />
+          <StatCard 
+            icon={<PieChart size={24}/>} 
+            label={t('prop_profit_month')} 
+            val={`$${stats.profitMonthly.toLocaleString()}`} 
+            color="#b45309" bg="#fffbeb" 
+            sub="Este mes" 
+          />
+          <StatCard 
+            icon={<TrendingUp size={24}/>} 
+            label={t('prop_profit_year')} 
+            val={`$${stats.profitAnnual.toLocaleString()}`} 
+            color="var(--accent)" bg="var(--accent-light)" 
+            sub="Balance anual" 
+          />
+        </motion.div>
+      </div>
+
       {/* Stats row */}
-      <motion.div className="stats-grid" variants={container} initial="hidden" animate="show">
+      <h2 style={{ fontSize: 13, fontWeight: 800, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Users2 size={16} color="var(--accent)" /> ESTADÍSTICAS DE PROSPECTOS
+      </h2>
+      <motion.div className="stats-grid" variants={container} initial="hidden" animate="show" style={{ marginBottom: 32 }}>
         {STAT_CARDS.map((s, i) => <StatCard key={i} {...s} />)}
       </motion.div>
 
@@ -180,34 +252,55 @@ export default function DashboardView() {
         </motion.div>
 
         {/* Right: Summary */}
-        <motion.div className="card" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay: 0.3 }}>
-          <div className="card-head">
-            <h3>{t('dash_fin_profile')}</h3>
-            <TrendingUp size={16} color="var(--accent)" />
-          </div>
-          <div style={{ padding: '8px 0' }}>
-            {[
-              [t('dash_avg_income'), `$${stats.avgIncome.toLocaleString()}${t('dash_per_month')}`],
-              [t('dash_avg_credit'), stats.avgCredit],
-              [t('dash_with_taxes'), `${stats.conTaxes} ${t('dash_of')} ${stats.total}`],
-              [t('dash_with_pets'), `${stats.conMascotas} ${t('dash_of')} ${stats.total}`],
-              [t('dash_with_id'), `${stats.conID} ${t('dash_of')} ${stats.total}`],
-              [t('dash_with_bank'), `${stats.conBanco} ${t('dash_of')} ${stats.total}`],
-            ].map(([lbl, val], i) => (
-              <div key={i} className="rank-item">
-                <div className="rank-info">
-                  <p style={{ fontSize:13, fontWeight:600, color:'var(--t2)' }}>{lbl}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <motion.div className="card" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay: 0.3 }}>
+            <div className="card-head">
+              <h3>{t('dash_fin_profile')}</h3>
+              <TrendingUp size={16} color="var(--accent)" />
+            </div>
+            <div style={{ padding: '8px 0' }}>
+              {[
+                [t('dash_avg_income'), `$${stats.avgIncome.toLocaleString()}${t('dash_per_month')}`],
+                [t('dash_avg_credit'), stats.avgCredit],
+                [t('dash_with_taxes'), `${stats.conTaxes} ${t('dash_of')} ${stats.total}`],
+                [t('dash_with_pets'), `${stats.conMascotas} ${t('dash_of')} ${stats.total}`],
+                [t('dash_with_id'), `${stats.conID} ${t('dash_of')} ${stats.total}`],
+                [t('dash_with_bank'), `${stats.conBanco} ${t('dash_of')} ${stats.total}`],
+              ].map(([lbl, val], i) => (
+                <div key={i} className="rank-item">
+                  <div className="rank-info">
+                    <p style={{ fontSize:13, fontWeight:600, color:'var(--t2)' }}>{lbl}</p>
+                  </div>
+                  <strong style={{ fontSize:14 }}>{val}</strong>
                 </div>
-                <strong style={{ fontSize:14 }}>{val}</strong>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding:24, background:'#f8fafc', borderTop:'1px solid var(--card-border)', textAlign:'center' }}>
-            <p style={{ fontSize:12, color:'var(--t3)', lineHeight:1.5 }}>
-              {t('dash_based_on')} <strong>{stats.total}</strong> {t('dash_registered')}
-            </p>
-          </div>
-        </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div className="card" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay: 0.4 }}>
+            <div className="card-head">
+              <h3>Transacciones Recientes</h3>
+              <DollarSign size={16} color="var(--success)" />
+            </div>
+            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+              {properties.filter(p => p.status === 'Rentada' && p.financiero).slice(0, 5).map((p, i) => (
+                <div key={p.id} className="feed-item" style={{ padding: '12px 16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>{p.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>Renta a {p.cliente_nombre || 'Cliente'}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--success)' }}>+${p.financiero.ganancia_neta?.toLocaleString()}</div>
+                    <div style={{ fontSize: 10, color: 'var(--t3)' }}>{new Date(p.financiero.fecha_transaccion).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              ))}
+              {properties.filter(p => p.status === 'Rentada' && p.financiero).length === 0 && (
+                <div style={{ padding: 40, textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>No hay rentas registradas aún.</div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

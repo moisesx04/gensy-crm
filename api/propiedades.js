@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     }
 
     if (method === 'PATCH') {
-      const { id, status, cliente_id, fecha_cita, title, loc, price, beds, baths, tag } = req.body;
+      const { id, status, cliente_id, fecha_cita, financiero, title, loc, price, beds, baths, tag } = req.body;
       if (!id) return res.status(400).json({ error: 'ID is required.' });
 
       if (title !== undefined) {
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         // Assignment update
         const { rows } = await sql`
           UPDATE propiedades 
-          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}
+          SET status = ${status}, cliente_id = ${cliente_id}, fecha_cita = ${fecha_cita}, financiero = ${financiero}
           WHERE id = ${id}
           RETURNING *;
         `;
