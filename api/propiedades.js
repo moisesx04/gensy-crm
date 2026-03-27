@@ -27,8 +27,11 @@ export default async function handler(req, res) {
 
   try {
     if (method === 'GET') {
-      // Auto-migración silenciosa para asegurar que la columna financiero exista
+      // Auto-migración silenciosa para asegurar que todas las columnas existan
       try {
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Disponible';`;
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS cliente_id UUID;`;
+        await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS fecha_cita TIMESTAMP WITH TIME ZONE;`;
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS financiero JSONB;`;
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS description TEXT;`;
         await sql`ALTER TABLE propiedades ADD COLUMN IF NOT EXISTS image_url TEXT;`;
