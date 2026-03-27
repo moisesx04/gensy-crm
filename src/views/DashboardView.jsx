@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { subscribeClientes, subscribeTo, getProperties } from '../lib/api';
-import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart, Home, Sparkles, Zap, Info } from 'lucide-react';
+import { TrendingUp, Copy, ExternalLink, BarChart3, Users2, Building2, Handshake, Wallet, DollarSign, PieChart, Home, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const container = {
@@ -46,7 +46,7 @@ export default function DashboardView() {
   const [copied, setCopied] = useState(false);
   const [copiedChat, setCopiedChat] = useState(false);
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const unsubClients = subscribeClientes(data => {
@@ -69,13 +69,24 @@ export default function DashboardView() {
     };
   }, []);
 
+  // Robust cleaning of property data to prevent crashes
+  const processedProperties = useMemo(() => {
+    return properties.map(p => {
+      let fin = p.financiero;
+      if (fin && typeof fin === 'string') {
+        try { fin = JSON.parse(fin); } catch (e) { fin = null; }
+      }
+      return { ...p, financiero: fin };
+    });
+  }, [properties]);
+
   const stats = useMemo(() => {
     const total = clientes.length;
     const now = new Date();
     const nowStr = now.toDateString();
     const hoy = clientes.filter(c => new Date(c.createdAt).toDateString() === nowStr).length;
     
-    const profitDaily = properties.reduce((acc, p) => {
+    const profitDaily = processedProperties.reduce((acc, p) => {
       if (p.status === 'Rentada' && p.financiero) {
         const d = new Date(p.financiero.fecha_transaccion || p.created_at);
         if (d.toDateString() === nowStr) return acc + (Number(p.financiero.ganancia_neta) || 0);
@@ -83,7 +94,7 @@ export default function DashboardView() {
       return acc;
     }, 0);
 
-    const profitMonthly = properties.reduce((acc, p) => {
+    const profitMonthly = processedProperties.reduce((acc, p) => {
       if (p.status === 'Rentada' && p.financiero) {
         const d = new Date(p.financiero.fecha_transaccion || p.created_at);
         if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) 
@@ -92,32 +103,34 @@ export default function DashboardView() {
       return acc;
     }, 0);
 
-    const availableProps = properties.filter(p => p.status !== 'Rentada').length;
-    const activeRents = properties.filter(p => p.status === 'Rentada').length;
+    const availableProps = processedProperties.filter(p => p.status !== 'Rentada').length;
+    const activeRents = processedProperties.filter(p => p.status === 'Rentada').length;
 
     return { total, hoy, profitDaily, profitMonthly, availableProps, activeRents };
-  }, [clientes, properties]);
-  
-  const insights = useMemo(() => {
-    if (clientes.length === 0) return null;
-    const withBank = clientes.filter(c => c.cuentaBanco === 'Sí').length;
-    const withProgram = clientes.filter(c => c.cashOPrograma === 'Programas de asistencia' || c.cashOPrograma === 'Ambos (Cash + Programa)').length;
-    const highIncome = clientes.filter(c => Number(c.ingresosMensuales) > 5000).length;
-    return {
-      bankPct: Math.round((withBank / clientes.length) * 100),
-      programPct: Math.round((withProgram / clientes.length) * 100),
-      potentials: highIncome
-    };
-  }, [clientes]);
+  }, [clientes, processedProperties]);
 
-  const formLink = `${window.location.origin}/form`;
-  const chatLink = `${window.location.origin}/chat`;
+  if (loading) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
+        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p style={{ color: 'var(--t3)', fontWeight: 600 }}>Cargando Panel Inteligente...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
-  const copy = useCallback((link, setter) => {
-    navigator.clipboard.writeText(link).catch(() => {});
-    setter(true);
-    setTimeout(() => setter(false), 2000);
-  }, []);
+  if (error) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', textAlign: 'center', padding: 20 }}>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          <AlertCircle size={30} />
+        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Vaya, algo salió mal</h2>
+        <p style={{ color: 'var(--t2)', maxWidth: 400, marginBottom: 24 }}>{error}</p>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
+  }
 
   return (
     <div className="page" style={{ maxWidth: 1400, margin: '0 auto' }}>
@@ -128,12 +141,10 @@ export default function DashboardView() {
         style={{ marginBottom: 40 }}
       >
         <div>
-          <h1 style={{ fontSize: 36, background: 'linear-gradient(135deg, var(--t1), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, letterSpacing: '-0.03em' }}>
+          <h1 style={{ fontSize: 34, background: 'linear-gradient(135deg, var(--t1), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {t('dash_title')}
           </h1>
-          <p style={{ fontSize: 16, color: 'var(--t2)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap size={16} color="var(--accent)" /> Panel Inteligente de G A FRIAS • {new Date().toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'long' })}
-          </p>
+          <p style={{ fontSize: 16 }}>Bienvenido de nuevo al panel interactivo de G A FRIAS REAL ESTATE.</p>
         </div>
         <div style={{ display:'flex', gap: 12 }}>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn btn-ghost" onClick={() => copy(formLink, setCopied)}>
@@ -144,43 +155,6 @@ export default function DashboardView() {
           </motion.button>
         </div>
       </motion.div>
-
-      {/* Smart Insights Banner */}
-      {insights && (
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ 
-            background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
-            borderRadius: 24, padding: '24px 32px', marginBottom: 32,
-            color: '#fff', position: 'relative', overflow: 'hidden',
-            boxShadow: '0 20px 40px -12px rgba(15, 23, 42, 0.3)'
-          }}
-        >
-          <div style={{ position: 'absolute', top: -20, right: -20, width: 150, height: 150, borderRadius: '50%', background: 'rgba(37, 99, 235, 0.15)', filter: 'blur(40px)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-            <div style={{ padding: 8, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex' }}>
-              <Sparkles size={18} color="#60a5fa" />
-            </div>
-            <h3 style={{ fontSize: 17, fontWeight: 800 }}>Resumen Inteligente del Negocio</h3>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Salud Bancaria</div>
-              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.bankPct}% <span style={{ fontSize: 12, color: '#10b981', fontWeight: 700 }}>con cuenta</span></div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Uso de Programas</div>
-              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.programPct}% <span style={{ fontSize: 12, color: '#60a5fa', fontWeight: 700 }}>asistencia</span></div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Prospectos Top</div>
-              <div style={{ fontSize: 24, fontWeight: 900 }}>{insights.potentials} <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 700 }}>ingresos $5k+</span></div>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Main Bento Layout */}
       <motion.div 
@@ -249,7 +223,7 @@ export default function DashboardView() {
             <PieChart size={18} color="var(--accent)" />
           </div>
           <div style={{ padding: '0 24px 24px' }}>
-            {properties.filter(p => p.status === 'Rentada' && p.financiero).slice(0, 4).map((p, i) => (
+            {processedProperties.filter(p => p.status === 'Rentada' && p.financiero).slice(0, 4).map((p, i) => (
               <div key={p.id} style={{ display: 'flex', gap: 12, padding: '16px 0', borderBottom: i < 3 ? '1px solid var(--bg)' : 'none' }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-light)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Home size={20} />
